@@ -1106,6 +1106,9 @@ function renderViewTools() {
   $('toggleBlur').classList.toggle('on', S.coverBlur);
   $('toggleBlur').setAttribute('aria-pressed', String(S.coverBlur));
   $('toggleBlur').title = S.coverBlur ? L('표지 보이기') : L('표지 가리기');
+  $('hdBlur').classList.toggle('on', S.coverBlur);
+  $('hdBlur').setAttribute('aria-pressed', String(S.coverBlur));
+  { const t = S.coverBlur ? L('표지 보이기') : L('표지 가리기'); $('hdBlur').title = t; $('hdBlur').setAttribute('aria-label', t); }
 }
 // 표지 가리기: 목록·상세·리뷰카드의 표지를 흐리게. 누르면 크게 보기에서만 선명하게 보여요.
 function setCoverBlur(on) {
@@ -1117,6 +1120,7 @@ function setCoverBlur(on) {
 $('toggleBlur').onclick = () => { setCoverBlur(!S.coverBlur); toast(S.coverBlur ? L('표지를 흐리게 가렸어요.') : L('표지를 다시 보여요.')); };
 document.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => { S.view = b.dataset.view; rememberView(); renderViewTools(); renderList(); }));
 $('hdHidden').onclick = () => $('toggleHidden').click();
+$('hdBlur').onclick = () => $('toggleBlur').click();
 $('toggleHidden').onclick = () => {
   S.showHidden = !S.showHidden;
   rememberView(); renderViewTools(); renderNav(); renderList();

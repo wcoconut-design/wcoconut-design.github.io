@@ -45,6 +45,7 @@ window.VB_GUIDE = {
           '작품 화면의 성우, 서클, 태그를 누르면 그 작품들만 모여요. 목록 위 **‹ 작품으로**로 돌아와요.',
           '**＋**: 작품 추가 / **통계**: 작품과 지출 / **설정**',
           '목록 위 ⚙ **필터**: 정렬, 성우, 서클, 장르, 여러 개 선택',
+          '[폰] 목록 위 그림 아이콘을 누르면 **표지 가리기**가 바로 켜지고 꺼져요.',
         ], tips: ['[PC] 넓은 화면에서는 메뉴, 목록, 상세가 한 화면에 보여요.', '[PC] 단축키: `/` 검색 / `n` 새 작품 / `↑` `↓` 이동'] },
         { more: true, h: '다른 기기에서 쓰던 기록 옮기기', steps: [
           '쓰던 기기: 설정 → 백업 → **복원용 백업 받기**',
@@ -226,6 +227,7 @@ window.VB_GUIDE = {
           'Tap an actor, circle or tag on a work to see matching works. **‹ Back to work** above the list takes you back.',
           '**＋**: add a work / **Stats**: works and spending / **Settings**',
           '⚙ **Filter** above the list: sort, actor, circle, genre, select several',
+          '[폰] Tap the picture icon above the list to turn **cover blur** on or off.',
         ], tips: ['[PC] On a wide screen, menu, list and details appear together.', '[PC] Shortcuts: `/` search / `n` new work / `↑` `↓` move'] },
         { more: true, h: 'Move records from another device', steps: [
           'Old device: Settings → Backup → **Save restore backup**',
@@ -399,6 +401,7 @@ window.VB_GUIDE = {
           '作品画面の声優、サークル、タグを押すと、その作品だけが集まります。一覧の上の**‹ 作品に戻る**で戻れます。',
           '**＋**：作品を追加 / **統計**：作品と支出 / **設定**',
           'リスト上の ⚙ **フィルター**：並べ替え、声優、サークル、ジャンル、複数選択',
+          '[폰] リスト上の画像アイコンで **表紙を隠す** をすぐに切り替えられます。',
         ], tips: ['[PC] 広い画面ではメニュー、リスト、詳細が並んで表示されます。', '[PC] ショートカット：`/` 検索 / `n` 新規 / `↑` `↓` 移動'] },
         { more: true, h: '他の端末の記録を移す', steps: [
           '今までの端末：設定 → バックアップ → **復元用バックアップを保存**',
