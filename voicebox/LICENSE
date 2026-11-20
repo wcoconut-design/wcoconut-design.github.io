@@ -1,0 +1,30 @@
+Copyright (c) 2026 @w_coconut. All rights reserved.
+
+VOICE BOX — 보이스 드라마(음성 작품) 기록 앱
+https://wcoconut-design.github.io/voice-reviewcard/vbx-7c5d259ac690/
+
+[한국어]
+- 누구나 위 주소의 앱을 개인 기록용으로 무료로 쓸 수 있어요.
+- 이 저장소의 코드·디자인(리뷰카드 디자인 포함)을 허락 없이 복사·수정·다시 배포할 수 없어요.
+- "내 서버"(vb-server)는 이 앱과 함께 쓰기 위해 각자의 Cloudflare 계정에 배포해서 써도 돼요.
+- 작품 표지와 정보의 저작권은 각 제작사·판매처에 있어요.
+
+[English]
+- Anyone may use the app at the address above for free, for personal record keeping.
+- The code and design in this repository (including the review card design) may not be copied,
+  modified, or redistributed without permission.
+- The companion server (vb-server) may be deployed to your own Cloudflare account for use with this app.
+- Cover images and work information belong to their respective makers and stores.
+
+[日本語]
+- 上記のアプリは、個人の記録用として誰でも無料で使えます。
+- このリポジトリのコード・デザイン（レビューカードのデザインを含む）を、許可なく複製・改変・再配布することはできません。
+- 「自分のサーバー」(vb-server) は、このアプリと一緒に使うために各自の Cloudflare アカウントへデプロイできます。
+- 作品の表紙と情報の著作権は、各制作元・販売元にあります。
+
+Third-party software
+- Pretendard — SIL Open Font License 1.1 (https://github.com/orioncactus/pretendard)
+- qrcode-generator — MIT License (https://github.com/kazuhikoarase/qrcode-generator)
+- 강원교육모두체 (Gangwon Edu All) — © 강원특별자치도교육청, free font (https://www.gwe.go.kr)
+- 나눔스퀘어라운드 (NanumSquareRound) — © NAVER, SIL Open Font License 1.1 (https://hangeul.naver.com)
+- Klee One, Jua, Mochiy Pop One, Zen Maru Gothic — SIL Open Font License 1.1 (Google Fonts)
