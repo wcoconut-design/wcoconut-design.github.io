@@ -1057,18 +1057,16 @@ function resetFilters() {
 }
 $('resetFilters').onclick = resetFilters;
 
-// 좁은 창: 필터·정렬·보기 형식·숨김·표지 가리기를 오른쪽 위 버튼 하나로 모아요.
+// 좁은 창: 필터·정렬을 오른쪽 위 버튼 하나로 모아요. (숨김·표지 가리기는 옆 아이콘)
 const FILTER_IDS = ['fActor', 'fCircle', 'fTag', 'fRating'];
 function openViewSheet() {
   const dlg = $('filterSheet');
-  const sw = (key, on, label) => `<button type="button" class="opt-row" data-opt="${key}" role="switch" aria-checked="${on}"><span>${label}</span><span class="switch${on ? ' on' : ''}"></span></button>`;
   dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2>${L("필터")}</h2><button type="button" class="close" data-close aria-label="${L("닫기")}">×</button></div>
     <div class="m-body view-sheet">
       <div class="opt-sec"><div class="opt-label">${L("정렬")}</div><div class="opt-sort"></div></div>
       <div class="opt-sec"><div class="opt-label">${L("구분")}</div><div class="seg opt-wt">${[['', L('전체')], ['동인', L('동인')], ['상업', L('상업')]].map(([v, l]) => `<button type="button" data-wt="${v}" class="${S.wt === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
       ${S.blMode ? `<div class="opt-sec"><div class="opt-label">${L("장르 구분")}</div><div class="seg opt-aud">${[['', L('전체')], ...AUDS()].map(([v, l]) => `<button type="button" data-aud="${v}" class="${(S.aud || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>` : ''}
       <div class="opt-sec"><div class="opt-label">${L("필터")}</div><div class="filter-body"></div></div>
-      <div class="opt-sec opt-switches">${sw('blur', S.coverBlur, L('표지 가리기'))}</div>
       <div class="opt-sec"><button type="button" class="ghost-btn opt-select" id="sheetSelect">${L('여러 개 선택해서 지우기, 숨기기')}</button></div>
     </div>
     <div class="m-foot"><button type="button" class="link-btn" id="sheetReset">${L("초기화")}</button><span class="spacer"></span><button type="button" class="primary-btn" data-close>${L("적용")}</button></div></div>`;
@@ -1077,13 +1075,6 @@ function openViewSheet() {
   for (const id of FILTER_IDS) body.appendChild($(id));
   dlg.querySelector('.opt-sort').appendChild($('fSort'));
   dlg.querySelectorAll('[data-close]').forEach((b) => (b.onclick = () => dlg.close()));
-  dlg.querySelector('.opt-switches').onclick = (e) => {
-    const b = e.target.closest('[data-opt]'); if (!b) return;
-    if (b.dataset.opt === 'hidden') { S.showHidden = !S.showHidden; rememberView(); renderViewTools(); renderNav(); renderList(); }
-    else setCoverBlur(!S.coverBlur);
-    const on = b.dataset.opt === 'hidden' ? S.showHidden : S.coverBlur;
-    b.setAttribute('aria-checked', String(on)); b.querySelector('.switch').classList.toggle('on', on);
-  };
   dlg.querySelector('.opt-wt').onclick = (e) => { const b = e.target.closest('[data-wt]'); if (!b) return; S.wt = b.dataset.wt; $('fWorkType').value = S.wt; S.shown = 60; renderList(); dlg.querySelectorAll('.opt-wt button').forEach((x) => x.classList.toggle('on', x === b)); };
   dlg.querySelector('.opt-aud') && (dlg.querySelector('.opt-aud').onclick = (e) => { const b = e.target.closest('[data-aud]'); if (!b) return; S.aud = b.dataset.aud; S.shown = 60; renderList(); dlg.querySelectorAll('.opt-aud button').forEach((x) => x.classList.toggle('on', x === b)); });
   $('sheetSelect').onclick = () => { dlg.close(); startSelect(); };
