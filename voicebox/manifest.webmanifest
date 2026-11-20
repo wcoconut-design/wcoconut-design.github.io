@@ -1,7 +1,7 @@
 {
- "name": "VOICE BOX",
+ "name": "POCKET VOICE BOX",
  "short_name": "VOICE BOX",
- "description": "VOICE BOX / 여성향 보이스 드라마 메모장",
+ "description": "POCKET VOICE BOX / 여성향 보이스 드라마 메모장",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",

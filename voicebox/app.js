@@ -3147,7 +3147,7 @@ async function openSettings(reuse) {
         <div class="set-group set-pad srv-block">${serverBlockHtml(syncSt)}</div>
       </details>
       <div class="set-about">
-        <div><b>VOICE BOX</b>${APP_VERSION ? ` v${esc(APP_VERSION)}` : ''} / <span class="cmark">©</span> 2026 <a href="https://x.com/w_coconut" target="_blank" rel="noopener">@w_coconut</a></div>
+        <div><b>POCKET VOICE BOX</b>${APP_VERSION ? ` v${esc(APP_VERSION)}` : ''} / <span class="cmark">©</span> 2026 <a href="https://x.com/w_coconut" target="_blank" rel="noopener">@w_coconut</a></div>
         <div>${L('작품 표지와 정보의 저작권은 각 제작사, 판매처에 있어요.')}</div>
         <details class="about-more"><summary>${L('글꼴과 공개 도구')}</summary>
           <div>${L('사용한 공개 도구')}: qrcode-generator (MIT)</div>
@@ -3851,7 +3851,7 @@ load().then(() => {
   const back = location.hash.match(/^#open=(.+)$/);
   if (back) { history.replaceState(null, '', location.pathname + location.search); select(decodeURIComponent(back[1]), { push: false }); }
   if (S.solo) {
-    select(S.solo, { push: false }).then(() => { if (S.detail) document.title = displayTitle(S.detail) + ' - VOICE BOX'; });
+    select(S.solo, { push: false }).then(() => { if (S.detail) document.title = displayTitle(S.detail) + ' - POCKET VOICE BOX'; });
   }
   if (S.notion.running) pollSync();
 }).catch((e) => {

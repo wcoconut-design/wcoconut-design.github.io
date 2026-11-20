@@ -268,7 +268,7 @@ export function reviewsHtml(works, localize, { order = 'played', lang } = {}) {
   const countTx = lang === 'en' ? `${n} review${n === 1 ? '' : 's'}` : lang === 'ja' ? `感想 ${n}件` : `감상 ${n}개`;
   const worksTx = lang === 'en' ? `${n} work${n === 1 ? '' : 's'}` : lang === 'ja' ? `${n}作品` : `${n}편`;
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VOICE BOX ${T('감상 모음')} · ${esc(today)}</title>
+<title>POCKET VOICE BOX ${T('감상 모음')} · ${esc(today)}</title>
 <style>
 :root{--ink:#22201C;--muted:#6B655C;--line:#E2DCCF;--accent:#3443C4;--star:#B76E00}
 *{box-sizing:border-box}body{margin:0;background:#F6F3EC;color:var(--ink);font-family:${lang === 'ja' ? "'Hiragino Sans','Noto Sans JP'," : ''}'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif}
@@ -294,6 +294,6 @@ h2{font-family:'Nanum Myeongjo','AppleMyungjo','Noto Serif KR',serif;font-size:1
 </style></head><body>
 <div class="bar"><button class="primary" onclick="print()">${T('인쇄 / PDF로 저장')}</button>
 <a href="?order=played&amp;lang=${lang}">${T('최근 들은 순')}</a><a href="?order=rating&amp;lang=${lang}">${T('별점 순')}</a><span class="sp">${countTx}</span></div>
-<main class="doc"><header class="head"><h1>${T('감상 모음')}</h1><p>VOICE BOX · ${esc(today)} · ${worksTx}</p></header>
+<main class="doc"><header class="head"><h1>${T('감상 모음')}</h1><p>POCKET VOICE BOX / ${esc(today)} / ${worksTx}</p></header>
 ${items || `<p class="empty">${T('아직 감상을 쓴 작품이 없어요.')}</p>`}</main></body></html>`;
 }

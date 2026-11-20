@@ -1279,3 +1279,7 @@ body.home-mode .main-head { display: none; }
 .set-about .about-more summary::after { content: ' ▾'; }
 .set-about .about-more[open] summary::after { content: ' ▴'; }
 .set-about .about-more > div { margin-top: 4px; }
+
+/* 앱 이름: 작은 pocket + VOICE BOX */
+.brand-txt { display: inline-flex; flex-direction: column; line-height: 1.05; }
+.brand-txt small { font-size: 10px; font-weight: 600; letter-spacing: .06em; color: var(--accent); text-transform: lowercase; }
