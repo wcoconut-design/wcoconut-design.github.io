@@ -2250,7 +2250,9 @@ const getRelay = () => { try { return JSON.parse(localStorage.getItem('voicebox.
 const DEPLOY_URL = 'https://deploy.workers.cloudflare.com/?url=https://github.com/wcoconut-design/voice-reviewcard/tree/main/vb-server';
 const SERVER_CODE_URL = 'https://wcoconut-design.github.io/voice-reviewcard/vb-server/src/index.js';
 const NEW_KEY = 'voicebox.newKey';
-const SERVER_LATEST = 7;
+const SERVER_LATEST = 8;
+// '나중에'를 누르면 다음 서버 판이 나올 때까지 업데이트 안내를 숨겨요.
+const srvSnoozed = () => { try { return +localStorage.getItem('voicebox.srvSnooze') || 0; } catch { return 0; } };
 function boxSyncText(st) {
   if (st.running) return L('동기화하는 중…');
   if (st.error) return L('동기화 오류: ') + st.error;
@@ -3264,9 +3266,10 @@ async function openSettings(reuse) {
       const el = $('srvStatus'); if (!el) return;
       el.innerHTML = statusDots(j);
       // 영수증 가져오기의 작품 종류 조회는 서버 코드 6판부터 돼요. 폰 앱에서만 안내해요.
-      if (window.VB_MOBILE && (j.version || 0) < SERVER_LATEST) el.insertAdjacentHTML('afterend', `<div class="srv-update"><strong>${L('서버 코드 업데이트')}</strong><span>${L('DLsite 페이지가 바뀌었어요. 작품 소개를 끝까지 가져오려면 서버 코드를 업데이트해 주세요.')}</span>
+      if (window.VB_MOBILE && (j.version || 0) < SERVER_LATEST && srvSnoozed() < SERVER_LATEST) el.insertAdjacentHTML('afterend', `<div class="srv-update"><strong>${L('서버 코드 업데이트')}</strong><span>${L('새 서버 코드가 있어요. 한 번 바꿔 두면 앞으로 판매 사이트 모양이 바뀌어도 앱 업데이트만으로 정보 채우기가 고쳐져요. 안 바꿔도 앱은 그대로 쓸 수 있어요.')}</span>
         <ol><li>${L('아래 버튼으로 새 코드 복사')}</li><li>${L('Cloudflare → Workers 및 Pages → 내 서버 → 코드 편집')}</li><li>${L('코드를 전부 지우고 붙여넣기 → 배포')}</li></ol>
-        <div class="set-row"><button type="button" class="primary-btn" id="srvCodeCopy">${L('새 서버 코드 복사')}</button><a class="ghost-btn" href="https://dash.cloudflare.com/?to=/:account/workers-and-pages" target="_blank" rel="noopener">Cloudflare ↗</a></div></div>`);
+        <div class="set-row"><button type="button" class="primary-btn" id="srvCodeCopy">${L('새 서버 코드 복사')}</button><a class="ghost-btn" href="https://dash.cloudflare.com/?to=/:account/workers-and-pages" target="_blank" rel="noopener">Cloudflare ↗</a><button type="button" class="link-btn" id="srvSnooze">${L('나중에')}</button></div></div>`);
+      $('srvSnooze') && ($('srvSnooze').onclick = () => { try { localStorage.setItem('voicebox.srvSnooze', String(SERVER_LATEST)); } catch {} document.querySelector('.srv-update')?.remove(); });
       const b = $('srvCodeCopy');
       // 서버 코드는 예전 주소 저장소(vb-server)에 있어요. 짧은 주소 앱에서도 찾을 수 있게 전체 주소로 받아요.
       // 아이폰은 누른 순간에 바로 복사해야 해서, 안내가 보일 때 미리 받아 둬요.

@@ -5,6 +5,7 @@
 import { normalizeWork, guessWorkType, renameInList, groupHistory } from './model.js';
 import { toCsv, toXlsx, reviewsHtml } from './export-core.js';
 import { syncOnce, decide, phonePath } from './sync-core.js';
+import { fetchInfo } from './info.js';
 
 const BASE = new URL('./', import.meta.url);
 const API = new URL('api/', BASE).pathname;
@@ -244,10 +245,28 @@ const MOBILE_ONLY = '이 앱에서는 노션 연동을 지원하지 않아요. �
 const lang = () => { try { return JSON.parse(localStorage.getItem('voicebox.view') || '{}').menuLang || 'ko'; } catch { return 'ko'; } };
 const msg = (ko, en, ja) => ({ en, ja }[lang()] || ko);
 export function relayConfig() { try { return JSON.parse(localStorage.getItem('voicebox.relay') || 'null'); } catch { return null; } }
+let relayOld = false; // 서버에 /fetch가 없으면(7판 이하) 이번에 앱을 켜 둔 동안은 예전 방식만 써요
+const relayFetcher = (cfg) => async (u) => {
+  if (relayOld) throw Object.assign(new Error('old'), { code: 'old' });
+  let r;
+  try { r = await realFetch(cfg.url.replace(/\/+$/, '') + '/fetch', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-VB-Key': cfg.key }, body: JSON.stringify({ url: u }), signal: AbortSignal.timeout(25000) }); }
+  catch { throw new Error('net'); }
+  if (r.status === 401) throw Object.assign(new Error('key'), { code: 401 });
+  if (r.status === 404) { relayOld = true; throw Object.assign(new Error('old'), { code: 'old' }); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) throw new Error('판매 페이지가 응답하지 않았어요 (' + (j.status || r.status) + ').');
+  return { ok: true, status: j.status, url: j.url, text: async () => j.body, json: async () => JSON.parse(j.body) };
+};
 async function relayInfo(body) {
   const cfg = relayConfig();
   const paste = msg('판매 페이지 글을 원문 칸에 붙여넣고 "원문에서 작품명·성우·발매일 찾기"를 눌러도 돼요.', 'You can also paste the store page text into the original tab and use "Find title, actors and date".', '販売ページの文章を原文欄に貼り付けて「原文から作品名・声優・発売日を探す」も使えます。');
   if (!cfg?.url || !cfg?.key) throw new ApiError(msg('설정 → 고급에서 정보 채우기 서버를 먼저 연결해 주세요. ', 'Connect the info server in Settings → Advanced first. ', '先に設定 → 詳細設定で情報取得サーバーを接続してください。') + paste);
+  // 서버 8판부터: 서버는 판매 페이지만 받아다 주고, 정보 골라내기는 앱이 해요.
+  // 예전 서버(7판 이하)거나 이 방식이 실패하면 예전처럼 서버에 통째로 맡겨요.
+  if (!relayOld) {
+    try { return await fetchInfo(String(body.url || ''), { quick: !!body.quick, fetcher: relayFetcher(cfg) }); }
+    catch (e) { if (e?.code === 401) throw new ApiError(msg('정보 채우기 서버의 열쇠가 맞지 않아요. 설정에서 확인해 주세요.', 'The info server key does not match. Check Settings.', '情報取得サーバーのキーが一致しません。設定を確認してください。'), 401); }
+  }
   let r;
   try {
     r = await realFetch(cfg.url.replace(/\/+$/, '') + '/info', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-VB-Key': cfg.key }, body: JSON.stringify({ url: body.url || '', quick: !!body.quick }), signal: AbortSignal.timeout(25000) });

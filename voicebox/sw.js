@@ -1,11 +1,11 @@
 // Copyright 2026 @w_coconut. All rights reserved.
 // VOICE BOX 폰 앱: 인터넷이 없어도 열리게 앱 파일을 저장해 두고, 직접 첨부한 이미지를 보여줍니다.
-const VERSION = '902d5b8971';
+const VERSION = '1fbd7880f7';
 // 짧은 주소(/voicebox/)와 예전 주소의 앱이 서로의 저장본을 지우지 않게 이름에 폴더를 붙여요.
 const SCOPE_TAG = new URL(self.registration.scope).pathname;
 const SHELL = `vb-shell-${VERSION}-${SCOPE_TAG}`;
 const IMAGE_CACHE = 'vb-images';
-const FILES = ["index.html","app.js","i18n.js","sync-core.js","style.css","style-themes.css","mobile.css","markdown.js","guide.js","export-core.js","model.js","local-api.js","mobile.js","reviewcard.html","reviewcard-bridge.js","manifest.webmanifest","icons/icon-180.png","icons/icon-192.png","icons/icon.svg"];
+const FILES = ["index.html","app.js","i18n.js","sync-core.js","style.css","style-themes.css","mobile.css","markdown.js","guide.js","export-core.js","model.js","info.js","local-api.js","mobile.js","reviewcard.html","reviewcard-bridge.js","manifest.webmanifest","icons/icon-180.png","icons/icon-192.png","icons/icon.svg"];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

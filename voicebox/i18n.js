@@ -745,6 +745,7 @@ window.VB_I18N = {
   '이 구매처 작품 보기': ['Show works from this store', 'この購入先の作品を見る'],
   '{s}에서 산 작품이에요. 필터 초기화로 돌아가요.': ['Works bought at {s}. Use Reset filters to go back.', '{s}で買った作品です。フィルターのリセットで戻ります。'],
   '구매처가 비어 있는 작품이에요.': ['Works with no store set.', '購入先が空の作品です。'],
+  '새 서버 코드가 있어요. 한 번 바꿔 두면 앞으로 판매 사이트 모양이 바뀌어도 앱 업데이트만으로 정보 채우기가 고쳐져요. 안 바꿔도 앱은 그대로 쓸 수 있어요.': ['New server code is available. Update once, and future store page changes will be fixed by app updates alone. The app keeps working even if you don\'t.', '新しいサーバーコードがあります。一度更新しておくと、今後は販売サイトが変わってもアプリの更新だけで情報取得が直ります。更新しなくてもアプリはそのまま使えます。'],
   '작품으로': ['Back to work', '作品に戻る'],
   '이전 목록': ['Previous list', '前の一覧'],
   '통계': ['Stats', '統計'],
