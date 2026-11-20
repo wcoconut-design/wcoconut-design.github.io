@@ -3096,9 +3096,7 @@ async function openSettings(reuse) {
         ${item(esc(tr('modeNote')), seg('data-theme-mode', S.theme, [['system', tr('modeSystem')], ['light', tr('modeLight')], ['dark', tr('modeDark')]]), L('자동은 기기의 밝게/어둡게 설정을 따라가요.'))}
         ${item(esc(tr('langNote')) + (S.menuLang === 'en' ? '' : ' / Language'), seg('data-menu-lang', S.menuLang, [['ko', '한국어'], ['ja', '日本語'], ['en', 'English']]))}
         ${isKoUI() ? item(esc(tr('nameModeNote')), seg('data-name-mode', S.nameMode, [['both', tr('nameBoth')], ['ko', tr('nameKo')], ['ja', tr('nameJa')]])) : ''}
-        <button type="button" class="set-item set-switch" id="blurSwitch" role="switch" aria-checked="${S.coverBlur}"><div class="si-label">${L('표지 가리기')}<small>${L('표지를 흐리게 해요')}</small></div><span class="switch${S.coverBlur ? ' on' : ''}"></span></button>
         <button type="button" class="set-item set-switch" id="blSwitch" role="switch" aria-checked="${!!S.blMode}"><div class="si-label">${L('일반/BL 작품 관리 포함')}<small>${L('여성향 외의 장르(일반, BL) 작품도 함께 관리할 때 켜요. 목록, 통계, 지출에서 나눠 볼 수 있어요.')}</small></div><span class="switch${S.blMode ? ' on' : ''}"></span></button>
-        ${window.VB_MOBILE ? `<div class="set-item"><div class="si-label">${L('표지 이 기기에 저장')}<small id="coverState">${L('한 번 받아 두면 바로 뜨고 인터넷 없이도 보여요.')}</small></div><button type="button" class="ghost-btn" id="coverPrefetch">${L('모두 받아두기')}</button></div>` : ''}
       </div>
       ${n.unsupported ? '' : `<div class="set-group-title">${L("노션 연결")}</div><div class="set-group set-pad">
         ${n.connected ? `<div class="banner ok">${L("CD LIST에 연결돼 있어요.")}</div>
@@ -3123,6 +3121,7 @@ async function openSettings(reuse) {
         ${!window.VB_MOBILE || getRelay().url ? `<button type="button" class="set-item set-link" id="openFillCheck"><div class="si-label">${L('정보 채우기 진단')}<small>${L('작품 소개가 짧게 오거나 비어 올 때, 어디서 막히는지 확인해요')}</small></div><span class="si-go">›</span></button>` : ''}
         <button type="button" class="set-item set-link" id="openDupes"><div class="si-label">${L("중복 작품 합치기")}<small>${L("같은 작품 코드가 두 번 있으면 구매 정보는 옮기고 하나로 합쳐요")}</small></div><span class="si-go">›</span></button>
         <button type="button" class="set-item set-link" id="openImgClean"><div class="si-label">${L("쓰지 않는 이미지 정리")}<small id="imgCleanState">${L("작품에서 뺀 지 30일 지난 이미지와 안 쓰는 표지를 지워요")}</small></div><span class="si-go">›</span></button>
+        ${window.VB_MOBILE ? `<div class="set-item"><div class="si-label">${L('표지 이 기기에 저장')}<small id="coverState">${L('한 번 받아 두면 바로 뜨고 인터넷 없이도 보여요.')}</small></div><button type="button" class="ghost-btn" id="coverPrefetch">${L('모두 받아두기')}</button></div>` : ''}
         ${isKoUI() ? `<button type="button" class="set-item set-link" id="openNames"><div class="si-label">${L("성우와 서클 이름 정리")}<small>${L("한글 읽기를 한 번에 붙이거나 고쳐요")}</small></div><span class="si-go">›</span></button>` : ''}
       </div>
       <div class="set-group-title">${L("백업")}</div>
@@ -3184,7 +3183,6 @@ async function openSettings(reuse) {
     renderList(); renderDetail();
     if (S.blMode) { const g = S.works.filter((w) => audienceOf(w) === 'general').length, b = S.works.filter((w) => audienceOf(w) === 'bl').length; toast(L('판매 링크로 일반 {g}개 / BL {b}개를 찾았어요. 작품 편집에서 바꿀 수 있어요.', { g, b })); }
   };
-  $('blurSwitch').onclick = () => { setCoverBlur(!S.coverBlur); $('blurSwitch').setAttribute('aria-checked', String(S.coverBlur)); $('blurSwitch').querySelector('.switch').classList.toggle('on', S.coverBlur); };
   dlg.querySelectorAll('[data-style]').forEach((b) => (b.onclick = async () => {
     if (S.style === b.dataset.style) return;
     S.style = b.dataset.style;
