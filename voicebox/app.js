@@ -2247,8 +2247,8 @@ let settingsTimer;
 const getRelay = () => { try { return JSON.parse(localStorage.getItem('voicebox.relay') || 'null') || {}; } catch { return {}; } };
 // ===== 내 서버 (정보 채우기 + 기기 간 동기화) =====
 // 'Deploy to Cloudflare' 버튼으로 각자 자기 Cloudflare 계정에 서버를 만들어요. 개인 열쇠·주소는 앱에 들어 있지 않아요.
-const DEPLOY_URL = 'https://deploy.workers.cloudflare.com/?url=https://github.com/wcoconut-design/voice-reviewcard/tree/main/vb-server';
-const SERVER_CODE_URL = 'https://wcoconut-design.github.io/voice-reviewcard/vb-server/src/index.js';
+const DEPLOY_URL = 'https://deploy.workers.cloudflare.com/?url=https://github.com/wcoconut-design/wcoconut-design.github.io/tree/main/vb-server';
+const SERVER_CODE_URL = 'https://wcoconut-design.github.io/vb-server/src/index.js';
 const NEW_KEY = 'voicebox.newKey';
 const SERVER_LATEST = 8;
 // '나중에'를 누르면 다음 서버 판이 나올 때까지 업데이트 안내를 숨겨요.
@@ -3271,7 +3271,7 @@ async function openSettings(reuse) {
         <div class="set-row"><button type="button" class="primary-btn" id="srvCodeCopy">${L('새 서버 코드 복사')}</button><a class="ghost-btn" href="https://dash.cloudflare.com/?to=/:account/workers-and-pages" target="_blank" rel="noopener">Cloudflare ↗</a><button type="button" class="link-btn" id="srvSnooze">${L('나중에')}</button></div></div>`);
       $('srvSnooze') && ($('srvSnooze').onclick = () => { try { localStorage.setItem('voicebox.srvSnooze', String(SERVER_LATEST)); } catch {} document.querySelector('.srv-update')?.remove(); });
       const b = $('srvCodeCopy');
-      // 서버 코드는 예전 주소 저장소(vb-server)에 있어요. 짧은 주소 앱에서도 찾을 수 있게 전체 주소로 받아요.
+      // 서버 코드 원본은 wcoconut-design.github.io 저장소의 vb-server 폴더에 있어요.
       // 아이폰은 누른 순간에 바로 복사해야 해서, 안내가 보일 때 미리 받아 둬요.
       let srvCode = '';
       const loadCode = () => fetch(SERVER_CODE_URL, { cache: 'no-store' }).then((r) => r.text()).then((t) => { if (!/VOICE BOX/.test(t)) throw new Error(); srvCode = t; return t; });
