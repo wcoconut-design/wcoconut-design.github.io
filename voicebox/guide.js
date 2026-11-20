@@ -77,7 +77,7 @@ window.VB_GUIDE = {
           '정보 수정 → 구매일·구매처·정가·할인가를 넣어요.',
           '쿠폰은 **쿠폰 · 이벤트 할인**을 펼쳐서 넣어요.',
           '**최종 구매금**은 자동으로 계산돼요.',
-          '"3개 999엔"은 **+ 같이 산 작품 묶기**로 나눠요.',
+          '묶음 할인 이벤트(예: 3개 999엔)로 샀다면 **+ 같이 산 작품 묶기**로 묶어요. 낸 금액이 작품마다 나눠져요.',
         ] },
         { more: true, h: '작품 소개와 번역', steps: [
           '**일본어 원문** 탭에 판매 페이지 소개글을 붙여넣어요.',
@@ -258,7 +258,7 @@ window.VB_GUIDE = {
           'Edit info → enter date, store, list price and sale price.',
           'For coupons, open **Coupon / event discount**.',
           'The **final price** is calculated automatically.',
-          'For "3 for ¥999", use **+ Group works bought together**.',
+          'Bought in a bundle sale (e.g. 3 for ¥999)? Use **+ Group works bought together**. The total is split across the works.',
         ] },
         { more: true, h: 'Description and translation', steps: [
           'Paste the store description in the **Japanese original** tab.',
@@ -431,7 +431,7 @@ window.VB_GUIDE = {
           '情報の編集 → 購入日・購入先・定価・セール価格を入れます。',
           'クーポンは **クーポン・イベント割引** を開いて入れます。',
           '**最終購入額** は自動で計算されます。',
-          '「3本999円」は **+ 一緒に買った作品をまとめる** で分けます。',
+          'まとめ買いセール（例: 3本999円）で買ったら **+ 一緒に買った作品をまとめる** でまとめます。支払った金額が作品ごとに分けられます。',
         ] },
         { more: true, h: '作品紹介', steps: [
           '**日本語原文** タブに販売ページの紹介文を貼り付けます。',
