@@ -2,7 +2,7 @@
 <!-- Copyright 2026 @w_coconut. All rights reserved. -->
 <html lang="ko" class="vb-mobile">
 <head>
-<meta name="vb-version" content="2.16.3">
+<meta name="vb-version" content="2.16.4">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F4F5F9" media="(prefers-color-scheme: light)">
@@ -55,7 +55,7 @@
   <div class="sidebar-foot">
    <button class="ghost-btn" id="openSettings" type="button">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
-    <span data-menu="settings">설정 · 노션 · 백업</span>
+    <span data-menu="settings">설정 / 노션 / 백업</span>
    </button>
    <div class="sync-line" id="syncLine"></div>
   </div>
@@ -81,13 +81,13 @@
    </label>
    <button type="button" class="search-cancel" id="searchCancel" data-ui="cancel">취소</button></div>
    <div class="filters">
-    <select id="fActor" aria-label="성우"><option value="">성우 · 전체</option></select>
-    <select id="fCircle" aria-label="서클"><option value="">서클 · 전체</option></select>
-    <select id="fTag" aria-label="장르"><option value="">장르 · 전체</option></select>
+    <select id="fActor" aria-label="성우"><option value="">성우 전체</option></select>
+    <select id="fCircle" aria-label="서클"><option value="">서클 전체</option></select>
+    <select id="fTag" aria-label="장르"><option value="">장르 전체</option></select>
     <select id="fRating" aria-label="별점">
-     <option value="">별점 · 전체</option><option value="5">★5</option><option value="4">★4 이상</option><option value="3">★3 이상</option><option value="0">별점 없음</option>
+     <option value="">별점 전체</option><option value="5">★5</option><option value="4">★4 이상</option><option value="3">★3 이상</option><option value="0">별점 없음</option>
     </select>
-    <select id="fWorkType" aria-label="구분"><option value="">구분 · 전체</option><option value="동인">동인</option><option value="상업">상업</option></select>
+    <select id="fWorkType" aria-label="구분"><option value="">구분 전체</option><option value="동인">동인</option><option value="상업">상업</option></select>
     <button class="tool-btn filter-btn" id="filterBtn" type="button">필터</button>
     <select id="fSort" aria-label="정렬">
      <option value="bought" selected>구매일 최신순</option>

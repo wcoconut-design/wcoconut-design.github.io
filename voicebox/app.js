@@ -243,12 +243,12 @@ const MENU_JA = {
 const MENU_KO = {
   toreview: '감상 쓸 작품',
   stats: '통계', pending: '반영 대기', 'g-library': '정리함', 'g-notion': '노션', 'g-folders': '내 폴더', 'new-folder': '+ 새 폴더',
-  settings: '설정 · 노션 · 백업', 'tab-list': '목록', 'tab-search': '검색', 'tab-menu': '정리함', 'tab-settings': '설정',
+  settings: '설정 / 노션 / 백업', 'tab-list': '목록', 'tab-search': '검색', 'tab-menu': '정리함', 'tab-settings': '설정',
   'pending-title': '노션 반영 대기', 'stats-title': '통계', 'add': '+ 작품 추가',
   'tab-home': '홈', 'tab-stats': '통계',
 };
 // 폰 앱(노션 연동 없음)은 설정 메뉴 이름에서 '노션'을 뺍니다.
-if (window.VB_MOBILE) { MENU_KO.settings = '설정 · 백업'; MENU_EN.settings = 'Settings'; MENU_JA.settings = '設定'; }
+if (window.VB_MOBILE) { MENU_KO.settings = '설정 / 백업'; MENU_EN.settings = 'Settings'; MENU_JA.settings = '設定'; }
 const menuText = (key) => (S.menuLang === 'en' ? MENU_EN[key] : S.menuLang === 'ja' ? MENU_JA[key] : MENU_KO[key] ?? (NAV.find((n) => n[0] === key) || [])[1]) || key;
 // 메뉴 언어를 따르는 화면 글자 (검색 화면, 칩, 설정의 보기 항목 등)
 const UI = {
@@ -415,9 +415,9 @@ function renderSync() {
   const n = S.notion || {};
   let text = L('노션 연결 안 됨');
   if (n.connected) {
-    if (n.running) text = `${L("노션에서 가져오는 중 ·")} ${n.processed}${L("개 확인")}`;
-    else if (n.error) text = L('노션 동기화 오류 · 설정에서 확인');
-    else if (n.lastSync) text = L('노션 동기화 · ') + new Date(n.lastSync).toLocaleString(LOCALE(), { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    if (n.running) text = `${L("노션에서 가져오는 중:")} ${n.processed}${L("개 확인")}`;
+    else if (n.error) text = L('노션 동기화 오류. 설정에서 확인해 주세요');
+    else if (n.lastSync) text = L('노션 동기화: ') + new Date(n.lastSync).toLocaleString(LOCALE(), { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     else text = L('노션 연결됨');
   }
   $('syncLine').textContent = text;
@@ -431,7 +431,7 @@ function fillFilterOptions() {
     return [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
   };
   const fill = (el, label, entries, current, show = (v) => v) => {
-    el.innerHTML = `<option value="">${label} ${L("· 전체")}</option>` +
+    el.innerHTML = `<option value="">${L('{x} 전체', { x: label })}</option>` +
       entries.map(([v, n]) => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(show(v))} (${n})</option>`).join('');
   };
   fill($('fActor'), L('성우'), count((w) => actorsOf(w)), S.actor, nameText);
@@ -578,7 +578,7 @@ function twoRowHtml(w) {
 }
 // 좁을 때: 간단한 한 줄
 function compactRowHtml(w) {
-  const sub = [splitNames(w.actor).map(nameText).join(', '), w.circle].filter(Boolean).join(' · ');
+  const sub = [splitNames(w.actor).map(nameText).join(', '), w.circle].filter(Boolean).join(' / ');
   return `<div ${rowAttrs(w, 'compact')}>
     ${thumbHtml(w)}
     <div class="row-main"><div class="row-title">${esc(displayTitle(w))}</div><div class="row-sub">${esc(sub)}</div></div>
@@ -586,7 +586,7 @@ function compactRowHtml(w) {
 }
 // 표지 보기 카드
 function cardHtml(w) {
-  const sub = [splitNames(w.actor).map(nameText).join(', '), w.circle].filter(Boolean).join(' · ');
+  const sub = [splitNames(w.actor).map(nameText).join(', '), w.circle].filter(Boolean).join(' / ');
   return `<div ${rowAttrs(w, 'card')}>
     <div class="card-cover">${thumbHtml(w)}${w.hidden ? `<span class="tag-hidden on-cover">${L("숨김")}</span>` : ''}${w.favorite ? '<span class="card-heart">♥</span>' : ''}</div>
     <div class="row-title">${esc(displayTitle(w))}</div>
@@ -651,7 +651,7 @@ function renderHome() {
   const shown = S.works.filter((w) => !w.hidden);
   const listened = S.works.filter((w) => !w.noStats && (w.lastPlayed || '').startsWith(ym)).length;
   const dateText = now.toLocaleDateString(LOCALE(), { month: 'long', day: 'numeric', weekday: 'short' });
-  const head = `<div class="hm-hello"><h1>${L('오늘은 뭘 들을까')}</h1><p>${esc(dateText)} · ${listened ? L('이번 달 {n}개 들었어요', { n: listened }) : L('이번 달은 아직 들은 작품이 없어요')}</p></div>`;
+  const head = `<div class="hm-hello"><h1>${L('오늘은 뭘 들을까')}</h1><p>${esc(dateText)} / ${listened ? L('이번 달 {n}개 들었어요', { n: listened }) : L('이번 달은 아직 들은 작품이 없어요')}</p></div>`;
   if (!shown.length) {
     el.innerHTML = head + `<div class="hm-card hm-empty"><strong>${L('아직 작품이 없어요')}</strong><span>${L('산 작품이 많다면 영수증 메일로 한 번에 시작해 보세요.')}</span>
       ${receiptCtaHtml('hmReceipt')}<button type="button" class="ghost-btn hm-add" data-home="add">＋ ${L('한 작품씩 직접 추가')}</button></div>`;
@@ -666,7 +666,7 @@ function renderHome() {
   let pick = '';
   if (pool.length) {
     const w = pool[(dayHash(now.toDateString()) + pickShift) % pool.length];
-    const sub = [splitNames(w.actor).map(nameText)[0] || w.circle, boughtAgo(w.purchaseDate), L('아직 안 들음')].filter(Boolean).join(' · ');
+    const sub = [splitNames(w.actor).map(nameText)[0] || w.circle, boughtAgo(w.purchaseDate), L('아직 안 들음')].filter(Boolean).join(' / ');
     pick = `<section class="hm-card"><div class="hm-h"><h2>${L('오늘의 한 작품')}</h2>${pool.length > 1 ? `<button type="button" class="link-btn" data-home="reroll">↻ ${L('다른 작품')}</button>` : ''}</div>
       <button type="button" class="hm-pick" data-id="${esc(w.id)}">${thumbHtml(w)}<span><span class="hm-pick-t">${esc(displayTitle(w))}</span><span class="hm-pick-s">${esc(sub)}</span></span></button></section>`;
   } else {
@@ -878,7 +878,7 @@ function openBulkFill() {
       } catch { failed++; }
       done++;
       bar.firstElementChild.style.width = Math.round((done / targets.length) * 100) + '%';
-      st.textContent = L('{a} / {b} · 채운 작품 {c}개', { a: done.toLocaleString(), b: targets.length.toLocaleString(), c: filled.toLocaleString() }) + (failed ? ' · ' + L('{n}개는 확인하지 못했어요.', { n: failed }) : '');
+      st.textContent = L('{a} / {b} (채운 작품 {c}개)', { a: done.toLocaleString(), b: targets.length.toLocaleString(), c: filled.toLocaleString() }) + (failed ? ' / ' + L('{n}개는 확인하지 못했어요.', { n: failed }) : '');
       await new Promise((r) => setTimeout(r, 300));
     }
     go.hidden = true;
@@ -895,9 +895,9 @@ function openDupes() {
   const counts = () => { const on = groups.filter((g) => g.on); return { dropN: on.reduce((a, g) => a + g.drop.length, 0), movedN: on.filter((g) => g.moved).length }; };
   let { dropN, movedN } = counts();
   dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2 tabindex="-1" autofocus>${L('중복 작품 합치기')}</h2><button type="button" class="close" data-close aria-label="${L('닫기')}">×</button></div>
-    <div class="m-body">${groups.length ? `<div class="rc-sum">${L('같은 코드 {g}묶음 · 지울 중복 {d}개 · 구매 정보 옮김 {m}개', { g: groups.length.toLocaleString(), d: dropN.toLocaleString(), m: movedN.toLocaleString() })}</div>
-      <p class="note">${L('감상·별점이 있는 쪽을 남겨요. 제목이 다른 묶음은 코드가 틀렸을 수 있어 체크를 빼 뒀어요. 지운 작품은 \'되돌리기\'에서 되살릴 수 있어요.')}</p>
-      <div class="set-group">${groups.map((g, gi) => `<label class="set-item dup-row"><input type="checkbox" data-dup="${gi}"${g.on ? ' checked' : ''}><div class="si-label">${esc(displayTitle(g.keep).slice(0, 40))}<small>${esc(g.code)} · ${L('중복')} ${g.drop.length}${L('개')}${g.moved ? ` · <b class="dup-moved">${L('구매 정보 옮김')}</b>` : ''}${g.sameTitle ? '' : ` · <b class="dup-warn">${L('제목이 달라요')}: ${esc(String(g.drop[0].title || '').slice(0, 30))}</b>`}</small></div></label>`).join('')}</div>`
+    <div class="m-body">${groups.length ? `<div class="rc-sum">${L('같은 코드 {g}묶음 / 지울 중복 {d}개 / 구매 정보 옮김 {m}개', { g: groups.length.toLocaleString(), d: dropN.toLocaleString(), m: movedN.toLocaleString() })}</div>
+      <p class="note">${L('감상, 별점이 있는 쪽을 남겨요. 제목이 다른 묶음은 코드가 틀렸을 수 있어 체크를 빼 뒀어요. 지운 작품은 \'되돌리기\'에서 되살릴 수 있어요.')}</p>
+      <div class="set-group">${groups.map((g, gi) => `<label class="set-item dup-row"><input type="checkbox" data-dup="${gi}"${g.on ? ' checked' : ''}><div class="si-label">${esc(displayTitle(g.keep).slice(0, 40))}<small>${esc(g.code)} / ${L('중복')} ${g.drop.length}${L('개')}${g.moved ? ` / <b class="dup-moved">${L('구매 정보 옮김')}</b>` : ''}${g.sameTitle ? '' : ` / <b class="dup-warn">${L('제목이 달라요')}: ${esc(String(g.drop[0].title || '').slice(0, 30))}</b>`}</small></div></label>`).join('')}</div>`
       : `<p class="note">${L('같은 작품 코드로 두 번 들어간 작품이 없어요.')}</p>`}</div>
     <div class="m-foot"><span class="dup-state muted"></span><span class="spacer"></span>${groups.length ? `<button type="button" class="primary-btn" id="dupGo">${L('{n}개 합치기', { n: dropN.toLocaleString() })}</button>` : ''}</div></div>`;
   dlg.querySelector('[data-close]').onclick = () => dlg.close();
@@ -907,7 +907,7 @@ function openDupes() {
     groups[c.dataset.dup].on = c.checked;
     ({ dropN, movedN } = counts());
     go.textContent = L('{n}개 합치기', { n: dropN.toLocaleString() }); go.disabled = !dropN;
-    dlg.querySelector('.rc-sum').textContent = L('같은 코드 {g}묶음 · 지울 중복 {d}개 · 구매 정보 옮김 {m}개', { g: groups.length.toLocaleString(), d: dropN.toLocaleString(), m: movedN.toLocaleString() });
+    dlg.querySelector('.rc-sum').textContent = L('같은 코드 {g}묶음 / 지울 중복 {d}개 / 구매 정보 옮김 {m}개', { g: groups.length.toLocaleString(), d: dropN.toLocaleString(), m: movedN.toLocaleString() });
   });
   if (go) go.onclick = async () => {
     go.disabled = true;
@@ -1069,7 +1069,7 @@ function openViewSheet() {
       ${S.blMode ? `<div class="opt-sec"><div class="opt-label">${L("장르 구분")}</div><div class="seg opt-aud">${[['', L('전체')], ...AUDS()].map(([v, l]) => `<button type="button" data-aud="${v}" class="${(S.aud || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>` : ''}
       <div class="opt-sec"><div class="opt-label">${L("필터")}</div><div class="filter-body"></div></div>
       <div class="opt-sec opt-switches">${sw('blur', S.coverBlur, L('표지 가리기'))}</div>
-      <div class="opt-sec"><button type="button" class="ghost-btn opt-select" id="sheetSelect">${L('여러 개 선택해서 지우기·숨기기')}</button></div>
+      <div class="opt-sec"><button type="button" class="ghost-btn opt-select" id="sheetSelect">${L('여러 개 선택해서 지우기, 숨기기')}</button></div>
     </div>
     <div class="m-foot"><button type="button" class="link-btn" id="sheetReset">${L("초기화")}</button><span class="spacer"></span><button type="button" class="primary-btn" data-close>${L("적용")}</button></div></div>`;
   const moved = [...FILTER_IDS, 'fSort'].map((id) => { const el = $(id); return [el, el.parentNode, el.nextSibling]; });
@@ -1286,7 +1286,7 @@ function renderDetail() {
   if (!S.notion.connected) notionHtml = '';
   else if (!w.notionPageId) notionHtml = `<div class="notion-bar"><span>${L("노션에 아직 없는 작품이에요")}</span><button type="button" data-act="push">${L("노션에 추가")}</button></div>`;
   else if ((w.pending || []).includes('unknown')) notionHtml = `<div class="notion-bar"><span>${L("노션과 비교가 필요해요")}</span><button type="button" data-act="push">${L("비교하기")}</button></div>`;
-  else if (pending.length) notionHtml = `<div class="notion-bar"><span>${L("노션과 다른 항목")} ${pending.length}${L("개 ·")} ${esc(pending.slice(0, 3).map((k) => pendingLabel[k]).join(', '))}${pending.length > 3 ? L(' 외') : ''}</span><button type="button" data-act="push">${L("골라서 반영")}</button></div>`;
+  else if (pending.length) notionHtml = `<div class="notion-bar"><span>${L("노션과 다른 항목")} ${pending.length}${L("개:")} ${esc(pending.slice(0, 3).map((k) => pendingLabel[k]).join(', '))}${pending.length > 3 ? L(' 외') : ''}</span><button type="button" data-act="push">${L("골라서 반영")}</button></div>`;
   else notionHtml = `<div class="notion-ok">${L("노션과 같아요")}</div>`;
 
   const hasT = !!w.translation, hasP = !!w.promo;
@@ -1314,7 +1314,7 @@ function renderDetail() {
     <div class="d-hero">
       ${w.images?.[0] ? `<span class="d-cover tb" data-act="zoom" data-i="0" role="button" aria-label="${L("표지")}"><img class="tb-img" src="${esc(imgUrl(w.images[0]))}" alt="${L("표지")}" referrerpolicy="no-referrer" data-ph="${esc(w.code)}" data-color="${placeholderColor(w.id)}"></span>` : `<div class="d-cover ph" style="background:${placeholderColor(w.id)}">${esc(w.code)}</div>`}
       <div class="d-titles">
-        <div class="d-meta-top">${esc([w.circle, w.date].filter(Boolean).join(' · '))}</div>
+        <div class="d-meta-top">${esc([w.circle, w.date].filter(Boolean).join(' / '))}</div>
         ${(() => { const [main, tail] = splitTitle(displayTitle(w)); return `<h2 class="d-title">${esc(main)}</h2>${tail ? `<div class="d-hash">${esc(tail)}</div>` : ''}`; })()}
         ${isKoUI() && w.titleKo && w.title ? `<div class="d-orig">${esc(w.title)}</div>` : ''}
       </div>
@@ -1328,7 +1328,7 @@ function renderDetail() {
       ${w.workType ? `<button type="button" class="chip chip-wt" data-filter="wt" data-v="${esc(w.workType)}" title="${L("이 구분의 작품 보기")}">${L(w.workType)}</button>` : ''}
       ${w.tags.map((t, i) => `<button type="button" class="chip tag${i >= TAG_SHOW && !S.tagsOpen ? ' more-hide' : ''}" data-filter="tag" data-v="${esc(t)}">${esc(t)}</button>`).join('')}
       ${w.tags.length > TAG_SHOW && !S.tagsOpen ? `<button type="button" class="chip chip-more" data-act="tagsopen">+${w.tags.length - TAG_SHOW}</button>` : ''}
-      ${w.folder ? `<span class="chip">${L("폴더 ·")} ${esc(w.folder)}</span>` : ''}
+      ${w.folder ? `<span class="chip">${L("폴더:")} ${esc(w.folder)}</span>` : ''}
     </div>
     <div class="records">
       <div class="rec">
@@ -1352,8 +1352,8 @@ function renderDetail() {
       <div class="card-row">
         ${(w.reviewCard || []).length
           ? `<button type="button" class="card-thumb" data-act="cardzoom" title="${L("대표 리뷰카드 크게 보기")}"><img src="${esc(w.reviewCard[0])}" alt="${L("대표 리뷰카드")}"></button>
-             <div class="card-acts"><span class="hint">${L("대표 리뷰카드")}${w.reviewCard.length > 1 ? ` · ${w.reviewCard.length}${L("장")}` : ''}</span>
-             <div><button type="button" class="link-btn" data-act="card">${L("다시 만들기 ↗")}</button> · <a class="link-btn" href="${esc(w.reviewCard[0])}" download="reviewcard-${esc(w.code || w.id)}.png">${L("내려받기")}</a> · <button type="button" class="link-btn danger-link" data-act="carddel">${L("빼기")}</button></div></div>`
+             <div class="card-acts"><span class="hint">${L("대표 리뷰카드")}${w.reviewCard.length > 1 ? ` / ${w.reviewCard.length}${L("장")}` : ''}</span>
+             <div><button type="button" class="link-btn" data-act="card">${L("다시 만들기 ↗")}</button> / <a class="link-btn" href="${esc(w.reviewCard[0])}" download="reviewcard-${esc(w.code || w.id)}.png">${L("내려받기")}</a> / <button type="button" class="link-btn danger-link" data-act="carddel">${L("빼기")}</button></div></div>`
           : `<button type="button" class="ghost-btn card-make" data-act="card">${L("리뷰카드 만들기 ↗")}</button><span class="hint">${L("감상과 작품 정보가 카드에 자동으로 들어가요")}</span>`}
       </div>
     </section>
@@ -1420,11 +1420,11 @@ function openOrder(id) {
             <input class="input od-list-price" data-i="${i}" inputmode="decimal" value="${m.list ?? ''}" placeholder="${L('정가')}" aria-label="${L('정가')}">
             <span class="od-share">${shares[i] != null ? esc(money(shares[i], st.cur)) : '–'}</span>
             <button type="button" class="od-rm" data-rm="${i}" aria-label="${L('빼기')}">×</button></div>`).join('')}</div>
-        <div class="od-add"><input class="input" id="odSearch" placeholder="${L('작품 더하기 · 제목이나 코드로 찾기')}" value="${esc(st.q)}" autocomplete="off">
+        <div class="od-add"><input class="input" id="odSearch" placeholder="${L('작품 더하기 (제목이나 코드로 찾기)')}" value="${esc(st.q)}" autocomplete="off">
           ${found.map((w) => `<button type="button" class="od-found" data-add="${esc(w.id)}">+ ${esc(displayTitle(w))}${w.orderId ? ` <small>(${L('다른 묶음')})</small>` : ''}</button>`).join('')}</div>
         <div class="field">${L('할인 방식')}<div class="seg od-seg">${[['', L('없음')], ['pct', L('% 쿠폰')], ['yen', L('금액 쿠폰')], ['bundle', L('묶음가')]].map(([v, l]) => `<button type="button" data-ot="${v}" class="${st.type === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
         ${st.type ? `<div class="grid2"><label class="field">${st.type === 'pct' ? L('할인율 (%)') : st.type === 'yen' ? L('쿠폰 금액') : L('묶음 가격')}<input id="odValue" inputmode="decimal" value="${esc(st.value)}" placeholder="${st.type === 'pct' ? '30' : st.type === 'yen' ? '200' : '999'}"></label><label class="field">${L('메모')}<input id="odMemo" value="${esc(st.memo)}" placeholder="${L('3개 999엔 이벤트')}"></label></div>` : ''}
-        <div class="field">${L('최종 구매금 (결제 금액)')}<div class="final-row"><input id="odTotal" inputmode="decimal" value="${total ?? ''}"><span class="final-mode">${st.manual ? `${L('직접 입력')} · <button type="button" class="link-btn" id="odAuto">${L('자동 계산으로')}</button>` : L('자동 계산')}</span></div></div>
+        <div class="field">${L('최종 구매금 (결제 금액)')}<div class="final-row"><input id="odTotal" inputmode="decimal" value="${total ?? ''}"><span class="final-mode">${st.manual ? `${L('직접 입력')} / <button type="button" class="link-btn" id="odAuto">${L('자동 계산으로')}</button>` : L('자동 계산')}</span></div></div>
         <div class="calc-line">${L('정가 합계')} ${money(listSum, st.cur)} → <strong>${money(total ?? 0, st.cur)}</strong>${listSum > (total ?? 0) ? ` <span class="buy-off">(${money(listSum - (total ?? 0), st.cur)} ${L('아낌')})</span>` : ''}<br><span class="muted">${L('작품마다 똑같이 나눠요. 끝전은 앞 작품부터 더해요.')}</span></div>
       </div>
       <div class="m-foot">${orderId ? `<button type="button" class="link-btn danger-link" id="odBreak">${L('묶음 풀기')}</button>` : ''}<span class="spacer"></span><button type="button" class="primary-btn" id="odSave">${L('저장')}</button></div></div>`;
@@ -1450,7 +1450,7 @@ function openOrder(id) {
   dlg.addEventListener('input', (e) => {
     const id = e.target.id;
     if (id === 'odSearch') { st.q = e.target.value; return rerender('odSearch'); }
-    if (id === 'odTotal') { st.manual = true; st.total = e.target.value; const sh = dlg.querySelectorAll('.od-share'); const tot = numOf(st.total); const parts = tot != null ? splitTotal(tot, members.length, st.cur) : []; sh.forEach((x, i) => { x.textContent = parts[i] != null ? money(parts[i], st.cur) : '–'; }); dlg.querySelector('.final-mode').innerHTML = `${L('직접 입력')} · <button type="button" class="link-btn" id="odAuto">${L('자동 계산으로')}</button>`; return; }
+    if (id === 'odTotal') { st.manual = true; st.total = e.target.value; const sh = dlg.querySelectorAll('.od-share'); const tot = numOf(st.total); const parts = tot != null ? splitTotal(tot, members.length, st.cur) : []; sh.forEach((x, i) => { x.textContent = parts[i] != null ? money(parts[i], st.cur) : '–'; }); dlg.querySelector('.final-mode').innerHTML = `${L('직접 입력')} / <button type="button" class="link-btn" id="odAuto">${L('자동 계산으로')}</button>`; return; }
     if (id === 'odValue' || e.target.classList.contains('od-list-price')) { readInputs(); if (!st.manual) { const t = auto(); $('odTotal').value = t ?? ''; const parts = t != null ? splitTotal(t, members.length, st.cur) : []; dlg.querySelectorAll('.od-share').forEach((x, i) => { x.textContent = parts[i] != null ? money(parts[i], st.cur) : '–'; }); } }
   });
   async function saveOrder() {
@@ -1605,8 +1605,8 @@ $('detail').addEventListener('click', async (e) => {
       { label: L('정보 수정'), run: () => openEditor(w) },
       { label: w.hidden ? L('숨김 해제') : L('목록에서 숨기기'), sub: w.hidden ? '' : L('기록은 그대로, 목록에서만 안 보여요'), run: () => $('detail').querySelector('[data-act="hide"]').click() },
       { label: w.noStats ? L('통계에 다시 넣기') : L('통계에서 빼기'), sub: w.noStats ? '' : L('목록에는 남고 작품 통계에서만 빠져요'), run: async () => { await save(w.id, { noStats: !w.noStats }); toast(w.noStats ? L('통계에 다시 넣었어요.') : L('통계에서 뺐어요. 지출 통계에는 그대로 있어요.')); } },
-      { label: L('기타 구매로 옮기기 (만화 등)'), sub: L('음성 작품이 아닐 때 · 지출에만 남아요'), run: async () => {
-        if (!confirm(L('기타 구매(만화 등)로 옮길까요? 목록·통계에서는 빠지고, 지출의 \'기타 구매 포함\'에서 보거나 되돌릴 수 있어요.'))) return;
+      { label: L('기타 구매로 옮기기 (만화 등)'), sub: L('음성 작품이 아닐 때 써요. 지출에만 남아요.'), run: async () => {
+        if (!confirm(L('기타 구매(만화 등)로 옮길까요? 목록, 통계에서는 빠지고, 지출의 \'기타 구매 포함\'에서 보거나 되돌릴 수 있어요.'))) return;
         try { await api('api/works/' + encodeURIComponent(w.id), { method: 'PATCH', body: { entryType: 'other', workKind: w.workKind && w.workKind !== '음성' ? w.workKind : '만화' } }); closeDetail(); await load(); toast(L('기타 구매로 옮겼어요.')); } catch (e) { fail(e); }
       } },
       ...(w.url ? [{ label: L('판매 페이지 ↗'), href: w.url }] : []),
@@ -1693,7 +1693,7 @@ function openEditor(work) {
         ${isNew ? receiptCtaHtml('edReceipt') : ''}
         <div id="edDup" class="dup" hidden></div>
         <div class="sec-label">${L("기본 정보")}</div>
-        <label class="field"${isKoUI() ? '' : ' hidden'}>${L("한국어 제목 · 목록에 먼저 보여요")}<input id="edTitleKo" value="${esc(ED.titleKo)}" placeholder="${L("비워두면 원제로 보여요")}"></label>
+        <label class="field"${isKoUI() ? '' : ' hidden'}>${L("한국어 제목 (목록에 먼저 보여요)")}<input id="edTitleKo" value="${esc(ED.titleKo)}" placeholder="${L("비워두면 원제로 보여요")}"></label>
         <label class="field">${L("원제")}<input id="edTitle" value="${esc(ED.title)}"></label>
         <div class="field">${L("성우")}<div class="tagbox actorbox" id="edActors"></div><input type="hidden" id="edActor" value="${esc(ED.actor)}"></div>
         <div class="grid2">
@@ -1706,7 +1706,7 @@ function openEditor(work) {
           <label class="field">${L("폴더")}<select id="edFolder"><option value="">${L("폴더 없음")}</option>${S.folders.map((f) => `<option${f === ED.folder ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select></label>
           <label class="field"${window.VB_MOBILE && !ED.organize ? ' hidden' : ''}>${L("정리 상태")}<input id="edOrganize" value="${esc(ED.organize)}" list="organizeList"></label>
         </div>
-        <label class="check ed-nostats"><input type="checkbox" id="edNoStats"${ED.noStats ? ' checked' : ''}>${L('통계에서 빼기')} <small class="muted">${L('작품 통계에만 해당 · 지출은 그대로')}</small></label>
+        <label class="check ed-nostats"><input type="checkbox" id="edNoStats"${ED.noStats ? ' checked' : ''}>${L('통계에서 빼기')} <small class="muted">${L('작품 통계에만 해당돼요. 지출은 그대로예요.')}</small></label>
         <div class="sec-label" style="margin-top:6px">${L("구매 정보")}</div>
         <div class="grid2">
           <label class="field">${L("구매처")}<input id="edStore" value="${esc(ED.store || '')}" list="storeList" placeholder="${L("DLsite, 포케도라…")}"></label>
@@ -1722,8 +1722,8 @@ function openEditor(work) {
           <label class="field">${L("할인가")}<input id="edSalePrice" inputmode="decimal" value="${ED.salePrice ?? ''}" placeholder="${L("세일 중이면")}"></label>
         </div>
         <div class="price-solo"${ED.orderId && !ED.orderNo ? ' hidden' : ''}>
-          <details class="ed-more"${ED.couponType ? ' open' : ''}><summary>${L('쿠폰 · 이벤트 할인')}</summary>
-          <div class="field">${L("쿠폰 · 이벤트")}<div class="seg cp-seg" id="edCoupon" role="radiogroup">${[['', L('없음')], ['pct', L('% 쿠폰')], ['yen', L('금액 쿠폰')]].map(([v, l]) => `<button type="button" data-cp="${v}" class="${(ED.couponType || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+          <details class="ed-more"${ED.couponType ? ' open' : ''}><summary>${L('쿠폰, 이벤트 할인')}</summary>
+          <div class="field">${L("쿠폰, 이벤트")}<div class="seg cp-seg" id="edCoupon" role="radiogroup">${[['', L('없음')], ['pct', L('% 쿠폰')], ['yen', L('금액 쿠폰')]].map(([v, l]) => `<button type="button" data-cp="${v}" class="${(ED.couponType || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
           <div class="grid2" id="edCouponRow"${ED.couponType ? '' : ' hidden'}>
             <label class="field"><span id="edCouponLabel">${ED.couponType === 'yen' ? L('쿠폰 금액') : L('할인율 (%)')}</span><input id="edCouponValue" inputmode="decimal" value="${ED.couponValue ?? ''}" placeholder="${ED.couponType === 'yen' ? '200' : '30'}"></label>
             <label class="field">${L("메모")}<input id="edCouponMemo" value="${esc(ED.couponMemo || '')}" placeholder="${L("가을 쿠폰")}"></label>
@@ -1733,10 +1733,10 @@ function openEditor(work) {
           <div class="calc-line" id="edCalc"></div>
         </div>
         <div class="order-box" id="edOrderBox">${ED.orderId
-          ? `<div class="order-sum"><span>${L('묶음 구매')} ${ED.orderCount || ''}${L('개')} · <strong>${esc(money(ED.orderTotal, ED.currency))}</strong> · ${L('이 작품')} ${esc(money(ED.paidPrice, ED.currency))}</span><button type="button" class="ghost-btn" id="edOrder">${L('묶음 고치기')}</button></div>`
-          : `<button type="button" class="link-btn" id="edOrder">${L('+ 같이 산 작품 묶기 (묶음·세트 할인)')}</button>`}</div>
+          ? `<div class="order-sum"><span>${L('묶음 구매')} ${ED.orderCount || ''}${L('개')} / <strong>${esc(money(ED.orderTotal, ED.currency))}</strong> / ${L('이 작품')} ${esc(money(ED.paidPrice, ED.currency))}</span><button type="button" class="ghost-btn" id="edOrder">${L('묶음 고치기')}</button></div>`
+          : `<button type="button" class="link-btn" id="edOrder">${L('+ 같이 산 작품 묶기 (묶음, 세트 할인)')}</button>`}</div>
         <div class="sec-label" style="margin-top:6px">${L("이미지")}</div>
-        <div class="note" id="edImgHint">${L('끌어서 순서를 바꿔요 · 첫 번째가 대표 이미지')}</div>
+        <div class="note" id="edImgHint">${L('끌어서 순서를 바꿔요. 첫 번째가 대표 이미지예요.')}</div>
         <div class="img-edit" id="edImages"></div>
         <div class="set-row"><input class="input" id="edImgUrl" placeholder="${L("이미지 주소 붙여넣기")}" style="flex:1;min-width:0"><button type="button" class="ghost-btn" id="edImgAdd">${L("추가")}</button></div>
         <input type="file" id="edFile" accept="image/*" multiple hidden>
@@ -1747,10 +1747,10 @@ function openEditor(work) {
         </div>
         <label class="field" style="flex:1"><span id="edIntroLabel"></span><textarea id="edIntro"></textarea></label>
         <div class="ed-tools">
-          <button type="button" class="link-btn" id="edExtract" title="${L('원문에서 작품명·성우·발매일을 찾아 빈칸에 채워요')}">${L('원문에서 정보 찾기')}</button>
+          <button type="button" class="link-btn" id="edExtract" title="${L('원문에서 작품명, 성우, 발매일을 찾아 빈칸에 채워요')}">${L('원문에서 정보 찾기')}</button>
           <button type="button" class="link-btn" id="edTranslate"${S.menuLang === 'ja' ? ' hidden' : ''}>${L('번역기로 열기 ↗')}</button>
         </div>
-        <div class="note">${L("**굵게** · ### 제목 · * 목록 사용 가능")}</div>
+        <div class="note">${L("**굵게** / ### 제목 / * 목록 사용 가능")}</div>
       </div>
     </div>
     <div class="m-foot">
@@ -1885,7 +1885,7 @@ function recalcPrice() {
   if (!ED.paidManual) $('edPaidPrice').value = auto == null || (!ED.couponType && sale == null) ? (sale ?? '') : auto;
   const paid = numOf($('edPaidPrice').value) ?? list;
   $('edPaidMode').innerHTML = ED.paidManual
-    ? `${L('직접 입력')} · <button type="button" class="link-btn" id="edPaidAuto">${L('자동 계산으로')}</button>`
+    ? `${L('직접 입력')} / <button type="button" class="link-btn" id="edPaidAuto">${L('자동 계산으로')}</button>`
     : L('자동 계산');
   const steps = [];
   if (list != null) steps.push(`${L('정가')} ${money(list, cur)}`);
@@ -1948,7 +1948,7 @@ function bindImageDrag() {
 function renderEdIntro() {
   document.querySelectorAll('[data-edtab]').forEach((b) => b.classList.toggle('on', b.dataset.edtab === ED.introTab));
   $('edIntro').value = ED[ED.introTab] || '';
-  $('edIntroLabel').textContent = ED.introTab === 'promo' ? L('판매 페이지의 소개글을 그대로 붙여넣어요') : L('번역문 · 직접 고칠 수 있어요');
+  $('edIntroLabel').textContent = ED.introTab === 'promo' ? L('판매 페이지의 소개글을 그대로 붙여넣어요') : L('번역문 (직접 고칠 수 있어요)');
   // 원문으로 하는 버튼은 '일본어 원문' 탭에서만 보여요.
   document.querySelector('.ed-tools')?.toggleAttribute('hidden', ED.introTab !== 'promo');
 }
@@ -2097,7 +2097,7 @@ function bindEditor() {
     openActions([
       { label: L('파파고 ↗'), sub: L('원문이 들어간 채로 바로 번역돼요'), href: `https://papago.naver.com/?sk=ja&tk=${tl}&st=${encodeURIComponent(text)}` },
       { label: L('구글 번역 ↗'), sub: L('원문이 들어간 채로 바로 번역돼요'), href: `https://translate.google.com/?sl=ja&tl=${tl}&text=${encodeURIComponent(text)}&op=translate` },
-      { label: L('ChatGPT ↗'), sub: L('번역 요청이 입력된 채로 열려요 · 로그인이 필요할 수 있어요'), href: `https://chatgpt.com/?q=${encodeURIComponent(req)}` },
+      { label: L('ChatGPT ↗'), sub: L('번역 요청이 입력된 채로 열려요. 로그인이 필요할 수 있어요.'), href: `https://chatgpt.com/?q=${encodeURIComponent(req)}` },
     ]);
     toast(ED.promo.length > MAX ? L('글이 길어서 앞부분만 넣었어요. 번역을 복사해서 번역 탭에 붙여넣어 주세요.') : L('번역을 복사해서 번역 탭에 붙여넣어 주세요.'));
   };
@@ -2232,7 +2232,7 @@ function renderPush() {
       renderNav();
       renderList();
       if (S.selected === p.id) renderDetail();
-      toast([r.pushed?.length ? `${L("노션에")} ${r.pushed.length}${L("개 반영")}` : '', r.pulled?.length ? `${L("노션 값")} ${r.pulled.length}${L("개 가져옴")}` : '', r.skipped?.length ? `${L("노션에 없는 항목")} ${r.skipped.length}${L("개는 건너뜀")}` : '', r.imagesAdded ? L('이미지 {n}장 넣음', { n: r.imagesAdded }) : '', r.imagesSkipped ? L('직접 올린 이미지 {n}장은 노션에 못 넣어요', { n: r.imagesSkipped }) : ''].filter(Boolean).join(' · ') || L('완료했어요.'));
+      toast([r.pushed?.length ? `${L("노션에")} ${r.pushed.length}${L("개 반영")}` : '', r.pulled?.length ? `${L("노션 값")} ${r.pulled.length}${L("개 가져옴")}` : '', r.skipped?.length ? `${L("노션에 없는 항목")} ${r.skipped.length}${L("개는 건너뜀")}` : '', r.imagesAdded ? L('이미지 {n}장 넣음', { n: r.imagesAdded }) : '', r.imagesSkipped ? L('직접 올린 이미지 {n}장은 노션에 못 넣어요', { n: r.imagesSkipped }) : ''].filter(Boolean).join(' / ') || L('완료했어요.'));
     } catch (e) {
       btn.disabled = false; btn.textContent = L('다시 시도');
       fail(e);
@@ -2273,7 +2273,7 @@ function serverBlockHtml(st) {
     return `<div class="srv-intro"><strong>${L('내 서버로 더 편하게')}</strong>
         <span>${window.VB_MOBILE ? L('무료 Cloudflare 서버를 하나 만들면 판매 링크로 정보 자동 채우기와 기기 간 동기화를 쓸 수 있어요.') : L('폰 앱과 같은 서버를 연결하면 폰과 기록을 주고받아요.')}</span></div>
       <button type="button" class="primary-btn srv-main" id="srvGuide">${L('설정 방법 보기')}</button>
-      <button type="button" class="ghost-btn srv-main" id="srvManualOpen">${L('이미 서버가 있어요 · 주소 넣기')}</button>
+      <button type="button" class="ghost-btn srv-main" id="srvManualOpen">${L('이미 서버가 있어요 (주소 넣기)')}</button>
       <div class="srv-manual" id="srvManual" hidden>
         <input class="input" id="srvUrl" placeholder="https://voicebox-server.○○.workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false">
         <div class="key-wrap"><input class="input" id="srvKey" type="password" placeholder="${L('비밀 열쇠 (VB_KEY)')}" autocomplete="new-password" autocapitalize="off" spellcheck="false"><button type="button" class="key-eye" data-eye="srvKey">${L('보기')}</button></div>
@@ -2341,7 +2341,7 @@ function confirmKeepKey(message, okLabel) {
       <p>${esc(message)}</p>
       <div class="kk-box"><strong>${L('열쇠를 먼저 복사해 두세요')}</strong><span>${L('다시 연결하려면 서버 주소와 열쇠가 필요해요. 열쇠는 Cloudflare에서 다시 볼 수 없어요.')}</span>
         <code>${esc(relay.url || '')}<br>${esc(relay.key)}</code>
-        <div class="set-row"><button type="button" class="ghost-btn" id="kkCopy">${L('주소·열쇠 복사')}</button></div></div>
+        <div class="set-row"><button type="button" class="ghost-btn" id="kkCopy">${L('주소와 열쇠 복사')}</button></div></div>
       <div class="set-row" style="justify-content:flex-end"><button type="button" class="ghost-btn" data-close>${L('취소')}</button><button type="button" class="primary-btn danger-fill" id="kkOk">${esc(okLabel)}</button></div>
     </div></div>`;
     document.body.appendChild(dlg);
@@ -2359,13 +2359,13 @@ function openServerGuide() {
   const dlg = document.createElement('dialog');
   dlg.className = 'modal srv-guide';
   const step = (n, title, body) => `<li class="sg-step"><span class="sg-num">${n}</span><div class="sg-body"><strong>${title}</strong>${body}</div></li>`;
-  dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2 tabindex="-1" autofocus>${L('내 서버 만들기')}</h2><span class="sg-time">${L('약 5분 · 무료')}</span><button type="button" class="close" data-close aria-label="${L('닫기')}">×</button></div>
+  dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2 tabindex="-1" autofocus>${L('내 서버 만들기')}</h2><span class="sg-time">${L('약 5분, 무료')}</span><button type="button" class="close" data-close aria-label="${L('닫기')}">×</button></div>
     <div class="m-body">
       <p class="note">${L('정보 채우기와 기기 간 동기화를 한 번에 켜요. 기록은 내 계정에만 저장돼요.')}</p>
       <ol class="sg-steps">
         ${step(1, L('계정 두 개 만들기'), `<p>${L('① GitHub → ② Cloudflare 순서로 가입해요. 이미 있으면 넘어가요.')}</p><div class="set-row"><a class="ghost-btn" href="https://github.com/signup" target="_blank" rel="noopener">① GitHub ↗</a><a class="ghost-btn" href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener">② Cloudflare ↗</a></div><p class="muted">${L('서버 코드는 내 GitHub에 복사되고, 서버는 Cloudflare에서 돌아가요.')}</p>`)}
         ${step(2, L('열쇠 만들기'), `<p>${L('서버에 넣을 비밀 열쇠예요. 복사해 두세요.')}</p><div class="sg-key"><code id="sgKey">${esc(key || '—')}</code></div><div class="set-row"><button type="button" class="ghost-btn" id="sgMake">${key ? L('새로 만들기') : L('열쇠 만들기')}</button><button type="button" class="primary-btn" id="sgCopy"${key ? '' : ' hidden'}>${L('복사')}</button></div>`)}
-        ${step(3, L('버튼 누르기'), `<p>${L('GitHub 연결 → 이름은 그대로 두고 → VB_KEY 칸에 열쇠 붙여넣기 → 만들고 배포하기(Create and deploy)')}</p><div class="set-row"><a class="primary-btn sg-deploy" href="${DEPLOY_URL}" target="_blank" rel="noopener">${L('Cloudflare에 서버 만들기 ↗')}</a></div><p class="sg-tip">${L('처음 한 번은 GitHub 연결 창(워크스페이스·계정 고르기)이 떠요. 내 GitHub 아이디를 고르고 허용한 뒤, 이 버튼을 다시 누르면 돼요.')}</p><p class="muted">${L('만드는 데 1~2분 걸려요.')}</p>`)}
+        ${step(3, L('버튼 누르기'), `<p>${L('GitHub 연결 → 이름은 그대로 두고 → VB_KEY 칸에 열쇠 붙여넣기 → 만들고 배포하기(Create and deploy)')}</p><div class="set-row"><a class="primary-btn sg-deploy" href="${DEPLOY_URL}" target="_blank" rel="noopener">${L('Cloudflare에 서버 만들기 ↗')}</a></div><p class="sg-tip">${L('처음 한 번은 GitHub 연결 창(워크스페이스, 계정 고르기)이 떠요. 내 GitHub 아이디를 고르고 허용한 뒤, 이 버튼을 다시 누르면 돼요.')}</p><p class="muted">${L('만드는 데 1~2분 걸려요.')}</p>`)}
         ${step(4, L('주소를 앱에 넣기'), `<p>${L('다 되면 Cloudflare 화면의 도메인(Domains)에서 ○○.workers.dev 주소를 눌러요. 열린 화면에서 [주소 복사] → 아래 칸에 붙여넣기.')}</p><input class="input" id="sgUrl" placeholder="https://voicebox-server.○○.workers.dev" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="set-row"><button type="button" class="primary-btn" id="sgConnect">${L('연결 확인')}</button></div><div class="note" id="sgState"></div>`)}
       </ol>
       <p class="note sg-more">${L('다른 기기에서는: 설정 → 고급 → 이미 서버가 있어요 → 같은 주소와 열쇠를 넣으면 돼요.')}</p>
@@ -2387,7 +2387,7 @@ async function runSyncNow(allowDelete = false) {
   if (el) el.textContent = L('동기화하는 중…');
   try {
     const r = await api('api/sync/run', { body: { allowDelete } });
-    if (el) el.textContent = '✓ ' + L('받은 작품 {a}개 · 바뀐 작품 {b}개 · 보낸 작품 {c}개', { a: r.pulled ?? 0, b: r.changed ?? 0, c: r.pushed ?? 0 });
+    if (el) el.textContent = '✓ ' + L('받은 작품 {a}개 / 바뀐 작품 {b}개 / 보낸 작품 {c}개', { a: r.pulled ?? 0, b: r.changed ?? 0, c: r.pushed ?? 0 });
     if (r.changed) await load();
   } catch (e) {
     // 다른 기기에서 지운 작품이 많으면 멈추고 물어봐요.
@@ -2457,10 +2457,10 @@ async function openRecover() {
     dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2 tabindex="-1" autofocus>${L('되돌리기')}</h2><button type="button" class="close" data-close aria-label="${L('닫기')}">×</button></div>
       <div class="m-body">
         ${window.VB_MOBILE ? `<div class="set-group-title">${L('자동 백업 (이 기기)')}</div>
-        <div class="set-group">${snaps.length ? snaps.map((sn) => `<div class="set-item rcv-row"><div class="si-label">${esc(when(sn.at))} · ${esc(L(sn.reason))}<small>${L('작품')} ${Number(sn.n).toLocaleString()}${L('개')}</small></div><button type="button" class="ghost-btn" data-snap="${esc(sn.at)}">${L('이 시점으로')}</button></div>`).join('') : `<div class="set-item"><div class="si-label"><small>${L('아직 자동 백업이 없어요.')}</small></div></div>`}</div>
-        <p class="note">${L('하루 한 번, 그리고 동기화·복원·초기화 전에 자동으로 저장해요. (최근 5개)')}</p>` : ''}
+        <div class="set-group">${snaps.length ? snaps.map((sn) => `<div class="set-item rcv-row"><div class="si-label">${esc(when(sn.at))} / ${esc(L(sn.reason))}<small>${L('작품')} ${Number(sn.n).toLocaleString()}${L('개')}</small></div><button type="button" class="ghost-btn" data-snap="${esc(sn.at)}">${L('이 시점으로')}</button></div>`).join('') : `<div class="set-item"><div class="si-label"><small>${L('아직 자동 백업이 없어요.')}</small></div></div>`}</div>
+        <p class="note">${L('하루 한 번, 그리고 동기화, 복원, 초기화 전에 자동으로 저장해요. (최근 5개)')}</p>` : ''}
         <div class="set-group-title">${L('지워지거나 바뀐 작품')}</div>
-        <div class="set-group">${groups.length ? groups.map((g) => `<div class="set-item rcv-row"><div class="si-label">${esc(when(g.at))} · ${esc(L(RECOVER_LABEL[g.reason] || g.reason))} <b>${g.restorable.toLocaleString()}${L('개')}</b><small>${g.sample.map((x) => esc(String(x).length > 28 ? String(x).slice(0, 28) + '…' : x)).join(' · ')}${g.restorable > g.sample.length ? ` ${L('외')} ${(g.restorable - g.sample.length).toLocaleString()}${L('개')}` : ''}</small></div><button type="button" class="ghost-btn" data-group="${esc(g.key)}">${g.kind === 'deleted' ? L('되살리기') : L('그 전으로')}</button></div>`).join('') : `<div class="set-item"><div class="si-label"><small>${L('되살릴 작품이 없어요.')}</small></div></div>`}</div>
+        <div class="set-group">${groups.length ? groups.map((g) => `<div class="set-item rcv-row"><div class="si-label">${esc(when(g.at))} / ${esc(L(RECOVER_LABEL[g.reason] || g.reason))} <b>${g.restorable.toLocaleString()}${L('개')}</b><small>${g.sample.map((x) => esc(String(x).length > 28 ? String(x).slice(0, 28) + '…' : x)).join(' / ')}${g.restorable > g.sample.length ? ` ${L('외')} ${(g.restorable - g.sample.length).toLocaleString()}${L('개')}` : ''}</small></div><button type="button" class="ghost-btn" data-group="${esc(g.key)}">${g.kind === 'deleted' ? L('되살리기') : L('그 전으로')}</button></div>`).join('') : `<div class="set-item"><div class="si-label"><small>${L('되살릴 작품이 없어요.')}</small></div></div>`}</div>
         <p class="note">${L('다른 기기에도 반영하려면 되돌린 뒤 \'지금 동기화\'를 눌러요.')}</p>
         ${window.VB_MOBILE ? `<div class="set-group-title">${L('이 기기 초기화')}</div>
         <div class="set-group set-pad"><p class="note">${L('이 기기의 작품을 모두 비우고 서버 연결도 풀어요. 다른 기기는 그대로고, 비우기 전 상태는 자동 백업에 남아요.')}</p><div class="set-row"><button type="button" class="ghost-btn danger-btn" id="rcvReset">${L('이 기기 초기화')}</button></div></div>` : ''}
@@ -2475,13 +2475,13 @@ async function openRecover() {
         const sn = data.snapshots.find((x) => x.at === t.dataset.snap);
         if (!confirm(L('{at} 상태로 되돌릴까요? 그 뒤에 새로 넣은 작품은 그대로 남아요.', { at: when(sn.at) }))) return;
         const r = await api('api/recover', { body: { snapshot: sn.at } });
-        toast(L('되살린 작품 {a}개 · 되돌린 작품 {b}개', { a: r.added, b: r.updated })); await load(); await reload();
+        toast(L('되살린 작품 {a}개 / 되돌린 작품 {b}개', { a: r.added, b: r.updated })); await load(); await reload();
       }
       if (t.dataset.group) {
         const g = data.groups.find((x) => x.key === t.dataset.group);
         if (!confirm(g.kind === 'deleted' ? L('작품 {n}개를 되살릴까요?', { n: g.restorable }) : L('작품 {n}개를 바뀌기 전 내용으로 되돌릴까요?', { n: g.restorable }))) return;
         const r = await api('api/recover', { body: { group: g.key } });
-        toast(L('되살린 작품 {a}개 · 되돌린 작품 {b}개', { a: r.added, b: r.updated })); await load(); await reload();
+        toast(L('되살린 작품 {a}개 / 되돌린 작품 {b}개', { a: r.added, b: r.updated })); await load(); await reload();
       }
       if (t.id === 'rcvReset') {
         if (!(await confirmKeepKey(L('이 기기의 작품을 모두 비우고 처음 화면으로 돌아갈까요? 다른 기기의 기록은 그대로예요.'), L('이 기기 초기화')))) return;
@@ -2519,7 +2519,7 @@ async function openNames(tab = 'missing') {
     const shown = list.slice(0, 200);
     dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2 tabindex="-1" autofocus>${L('이름 정리')}</h2><button type="button" class="close" data-close aria-label="${L('닫기')}">×</button></div>
       <div class="m-body">
-        ${fix.length ? `<div class="nm-fix"><span>${L('노션의 성우·서클 이름 {n}개를 앱과 맞출 수 있어요.', { n: fix.length })}</span><button type="button" class="primary-btn" id="nmFix">${L('맞추기')}</button></div>` : ''}
+        ${fix.length ? `<div class="nm-fix"><span>${L('노션의 성우, 서클 이름 {n}개를 앱과 맞출 수 있어요.', { n: fix.length })}</span><button type="button" class="primary-btn" id="nmFix">${L('맞추기')}</button></div>` : ''}
         ${tab === 'missing' && known.length ? `<div class="nm-fix"><span>${L('일본어만 적힌 이름 {n}개는 다른 작품에 한국어 읽기가 있어요. (작품 {m}개)', { n: known.length, m: known.reduce((a, x) => a + x.n, 0) })}</span><button type="button" class="primary-btn" id="nmKnown">${L('한꺼번에 붙이기')}</button></div>` : ''}
         <div class="seg nm-tabs">${[['missing', L('한글 없음') + ' ' + missingN], ['actor', L('성우 전체')], ['circle', L('서클')]].map(([k, l]) => `<button type="button" data-nmtab="${k}" class="${tab === k ? 'on' : ''}">${l}</button>`).join('')}</div>
         <input class="input" id="nmSearch" placeholder="${L('이름 찾기')}" value="${esc(q)}" autocomplete="off">
@@ -2700,9 +2700,9 @@ async function openReceiptImport() {
   const doneHtml = (o, oi) => {
     const r = recordsOf(o.orderNo);
     const kind = (x) => (x.entryType === 'extra' ? L('추가 구매') : x.entryType === 'points' ? L('포인트 충전') : L('기타 구매'));
-    const rows = [...r.works.map((w) => `${esc(displayTitle(w).slice(0, 40))} <small class="muted">· ${L('작품의 구매 정보')}</small>`),
-      ...r.extras.map((w) => `${esc(String(w.title || '').slice(0, 40))} <small class="muted">· ${kind(w)}</small>`),
-      ...r.addons.map((w) => `${esc(displayTitle(w).slice(0, 40))} <small class="muted">· ${L('특전으로 더함')}</small>`)];
+    const rows = [...r.works.map((w) => `${esc(displayTitle(w).slice(0, 40))} <small class="muted">/ ${L('작품의 구매 정보')}</small>`),
+      ...r.extras.map((w) => `${esc(String(w.title || '').slice(0, 40))} <small class="muted">/ ${kind(w)}</small>`),
+      ...r.addons.map((w) => `${esc(displayTitle(w).slice(0, 40))} <small class="muted">/ ${L('특전으로 더함')}</small>`)];
     return `<div class="rc-done"><p class="note">${L('이미 넣은 주문이에요. 들어간 곳:')}</p><ul>${rows.map((x) => `<li>${x}</li>`).join('')}</ul>
       <button type="button" class="ghost-btn" data-redo="${oi}">${L('다시 넣기')}</button></div>`;
   };
@@ -2819,8 +2819,8 @@ async function openReceiptImport() {
       const found = k ? S.works.filter((w) => !(it.pack || []).includes(w.id) && nameKey([w.title, w.titleKo, w.code].join(' ')).includes(k)).slice(0, 5) : [];
       const shares = packShares(it, st.orders[oi].shares[ii]);
       return sel + `<div class="rc-pick rc-pack">
-        ${mem.map((w, j) => `<div class="rc-pack-row"><span>${esc(displayTitle(w))} <small class="muted">${esc(w.code)}${w.listPrice != null || st.look.get((w.code || '').toUpperCase())?.listPrice ? ` · ${L('정가')} ${money(w.listPrice ?? st.look.get(w.code.toUpperCase()).listPrice, 'JPY')}` : ''}</small></span><strong>${money(shares[j].paid, 'JPY')}</strong><button type="button" class="od-rm" data-packrm="${esc(w.id)}" data-o="${oi}" data-i="${ii}" aria-label="${L('빼기')}">×</button></div>`).join('') || `<p class="note">${L('팩에 든 작품을 찾아서 더해 주세요.')}</p>`}
-        <input class="input rc-q" data-o="${oi}" data-i="${ii}" value="${esc(it.q || '')}" placeholder="${L('팩에 든 작품 찾기 · 제목이나 코드')}" autocomplete="off">
+        ${mem.map((w, j) => `<div class="rc-pack-row"><span>${esc(displayTitle(w))} <small class="muted">${esc(w.code)}${w.listPrice != null || st.look.get((w.code || '').toUpperCase())?.listPrice ? ` / ${L('정가')} ${money(w.listPrice ?? st.look.get(w.code.toUpperCase()).listPrice, 'JPY')}` : ''}</small></span><strong>${money(shares[j].paid, 'JPY')}</strong><button type="button" class="od-rm" data-packrm="${esc(w.id)}" data-o="${oi}" data-i="${ii}" aria-label="${L('빼기')}">×</button></div>`).join('') || `<p class="note">${L('팩에 든 작품을 찾아서 더해 주세요.')}</p>`}
+        <input class="input rc-q" data-o="${oi}" data-i="${ii}" value="${esc(it.q || '')}" placeholder="${L('팩에 든 작품 찾기 (제목이나 코드)')}" autocomplete="off">
         ${found.map((w) => `<button type="button" class="od-found" data-packadd="${esc(w.id)}" data-o="${oi}" data-i="${ii}">+ ${esc(displayTitle(w))} <small class="muted">${esc(w.code)}</small></button>`).join('')}
         ${mem.length ? `<p class="note">${shares.byList ? L('정가 비율로 나눠요.') : L('정가가 없는 작품이 있어서 똑같이 나눠요.')}</p>` : ''}</div>`;
     }
@@ -2845,28 +2845,28 @@ async function openReceiptImport() {
     const pos = dlg.querySelector('.m-body')?.scrollTop || 0;
     let body;
     if (st.step === 'paste') {
-      body = `<p class="note">${L('DLsite·포케도라 등의 구매 메일 본문을 통째로 복사해서 붙여넣어요. 여러 통을 이어 붙여도 돼요.')}</p>
+      body = `<p class="note">${L('DLsite, 포케도라 등의 구매 메일 본문을 통째로 복사해서 붙여넣어요. 여러 통을 이어 붙여도 돼요.')}</p>
         <textarea class="input rc-text" id="rcText" placeholder="2026年10月3日&#10;作品購入&#10;注文番号：PTA0I…&#10;購入日時：2026/10/03 00:57&#10;…"></textarea>
         ${st.msg ? `<p class="note rc-msg">${esc(st.msg)}</p>` : ''}`;
     } else {
       const c = counts();
       const nl = needLook();
-      body = `<div class="rc-sum">${L('주문')} ${st.orders.filter((o) => o.kind === 'works' && !o.done).length}${L('건')} · ${L('작품')} ${c.items}${L('개')} (${L('찾음')} ${c.found} · ${L('앱에 없음')} ${c.missing})${c.pointsN ? ` · ${L('포인트 충전')} ${c.pointsN}${L('건')} ${money(c.pointsSum, 'JPY')}` : ''}${c.done ? ` · <span class="muted">${L('이미 넣은 주문')} ${c.done}${L('건')}</span>` : ''}</div>
+      body = `<div class="rc-sum">${L('주문')} ${st.orders.filter((o) => o.kind === 'works' && !o.done).length}${L('건')} / ${L('작품')} ${c.items}${L('개')} (${L('찾음')} ${c.found} / ${L('앱에 없음')} ${c.missing})${c.pointsN ? ` / ${L('포인트 충전')} ${c.pointsN}${L('건')} ${money(c.pointsSum, 'JPY')}` : ''}${c.done ? ` / <span class="muted">${L('이미 넣은 주문')} ${c.done}${L('건')}</span>` : ''}</div>
         <div class="rc-tools">
           <label class="check"><input type="checkbox" id="rcPrice"${st.fetchPrice ? ' checked' : ''}>${L('정가 비어 있는 작품은 DLsite에서 정가 가져오기')}</label>
-          ${nl.length ? `<button type="button" class="ghost-btn" id="rcLook"${st.busy ? ' disabled' : ''}>${st.busy ? esc(st.msg) : `${L('DLsite에서 종류·정가 확인')} (${nl.length})`}</button>` : ''}
+          ${nl.length ? `<button type="button" class="ghost-btn" id="rcLook"${st.busy ? ' disabled' : ''}>${st.busy ? esc(st.msg) : `${L('DLsite에서 종류와 정가 확인')} (${nl.length})`}</button>` : ''}
           ${!st.busy && st.msg ? `<p class="note rc-msg">${st.msg}</p>` : ''}
           ${c.missing ? `<div class="rc-bulk"><span>${L('앱에 없는 작품 {n}개 한꺼번에', { n: c.missing })}</span><div class="rc-bulk-btns"><button type="button" class="ghost-btn" data-bulk="new">${L('새 음성 작품')}</button><button type="button" class="ghost-btn" data-bulk="other">${L('기타 구매')}</button><button type="button" class="ghost-btn" data-bulk="skip">${L('건너뛰기')}</button></div></div>` : ''}
         </div>
         ${st.orders.map((o, oi) => {
-          if (o.kind === 'points') return `<div class="rc-order rc-points${o.done ? ' is-done' : ''}"><label class="check"><input type="checkbox" data-inc="${oi}"${o.include ? ' checked' : ''}${o.done ? ' disabled' : ''}>${esc(o.date)} · ${L('포인트 충전')} <strong>${money(o.pointAmount, 'JPY')}</strong></label>${o.done ? `<span class="muted">${L('이미 넣음')}</span>` : ''}</div>`;
+          if (o.kind === 'points') return `<div class="rc-order rc-points${o.done ? ' is-done' : ''}"><label class="check"><input type="checkbox" data-inc="${oi}"${o.include ? ' checked' : ''}${o.done ? ' disabled' : ''}>${esc(o.date)} / ${L('포인트 충전')} <strong>${money(o.pointAmount, 'JPY')}</strong></label>${o.done ? `<span class="muted">${L('이미 넣음')}</span>` : ''}</div>`;
           return `<div class="rc-order${o.done ? ' is-done' : ''}">
             <div class="rc-head"><label class="check"><input type="checkbox" data-inc="${oi}"${o.include ? ' checked' : ''}${o.done ? ' disabled' : ''}>${o.needDate ? '' : `<strong>${esc(o.date)}</strong> `}${o.store !== 'DLsite' ? `<span class="rc-store">${esc(o.store)}</span> ` : ''}<span class="muted">${esc(o.orderNo)}</span></label>
               ${o.needDate && !o.done && o.items.some((it) => it.target !== 'skip') ? `<label class="rc-date-row">${L('구매일')}<input type="date" class="input rc-date" data-date="${oi}" value="${esc(o.date)}">${o.date ? '' : `<small class="rc-need">${L('메일에 날짜가 없어요. 직접 넣어 주세요.')}</small>`}</label>` : ''}
               <span class="rc-tot">${money(o.subtotal, 'JPY')}${o.coupon ? ` − ${o.pct.text} ${L('쿠폰')} ${money(o.coupon, 'JPY')}` : ''} = <strong>${money(o.paid, 'JPY')}</strong>${o.points ? ` <span class="muted">(${L('포인트')} ${money(o.points, 'JPY')})</span>` : ''}</span></div>
             ${o.free && !o.done ? `<p class="note">${L('무료 주문이에요. 넣고 싶은 작품만 \'새 음성 작품으로 추가\'로 골라 주세요.')}</p>` : ''}
             ${o.done ? doneHtml(o, oi) : o.items.map((it, ii) => `<div class="rc-item${it.target === 'skip' ? ' is-skip' : ''}">
-                <span class="rc-title">${it.workId ? '<span class="rc-ok">✓</span>' : ''}${esc(it.title)} <small class="muted">${esc(it.code)}${it.kind ? ` · ${esc(it.kind)}` : it.guess ? ` · ${L('자동 선택')}` : ''}${it.hasBuy ? ` · ${L('구매 정보 있음')}${it.otherStore ? ` (${esc(S.works.find((x) => x.id === it.workId)?.store || '')})` : ''}` : ''}</small>${it.target === 'addon' && it.workTitle ? `<small class="rc-link">↳ ${L('특전')} → ${L('본편')}: ${esc(it.workTitle)}${it.addTo && !it.workId ? ` (${L('이번에 새로 넣는 작품')})` : ''}</small>` : ''}${it.target === 'pack' && it.pack?.length ? `<small class="rc-link">↳ ${L('팩')} → ${it.pack.length}${L('개 작품')}</small>` : ''}${(it.edition || it.picked) && it.workId ? `<small class="rc-link">↳ ${it.edition ? `${esc(it.edition)} → ${L('일본판')}: ` : ''}${esc(it.workTitle)}</small>` : ''}</span>
+                <span class="rc-title">${it.workId ? '<span class="rc-ok">✓</span>' : ''}${esc(it.title)} <small class="muted">${esc(it.code)}${it.kind ? ` / ${esc(it.kind)}` : it.guess ? ` / ${L('자동 선택')}` : ''}${it.hasBuy ? ` / ${L('구매 정보 있음')}${it.otherStore ? ` (${esc(S.works.find((x) => x.id === it.workId)?.store || '')})` : ''}` : ''}</small>${it.target === 'addon' && it.workTitle ? `<small class="rc-link">↳ ${L('특전')} → ${L('본편')}: ${esc(it.workTitle)}${it.addTo && !it.workId ? ` (${L('이번에 새로 넣는 작품')})` : ''}</small>` : ''}${it.target === 'pack' && it.pack?.length ? `<small class="rc-link">↳ ${L('팩')} → ${it.pack.length}${L('개 작품')}</small>` : ''}${(it.edition || it.picked) && it.workId ? `<small class="rc-link">↳ ${it.edition ? `${esc(it.edition)} → ${L('일본판')}: ` : ''}${esc(it.workTitle)}</small>` : ''}</span>
                 <span class="rc-price">${money(it.price, 'JPY')} → <strong>${money(o.shares[ii], 'JPY')}</strong></span>
                 ${tSel(oi, ii, it)}</div>`).join('')}
           </div>`;
@@ -2971,7 +2971,7 @@ async function openReceiptImport() {
       }
       await load();
       dlg.close();
-      toast([n ? L('작품 {n}개에 넣었어요', { n }) : '', addN ? L('특전 {n}개는 본편에 더했어요', { n: addN }) : '', newN ? L('새 작품 {n}개', { n: newN }) : '', extraN ? L('추가 구매 {n}개', { n: extraN }) : '', otherN ? L('기타 구매 {n}개', { n: otherN }) : '', pointsN ? L('포인트 충전 {n}건', { n: pointsN }) : ''].filter(Boolean).join(' · '));
+      toast([n ? L('작품 {n}개에 넣었어요', { n }) : '', addN ? L('특전 {n}개는 본편에 더했어요', { n: addN }) : '', newN ? L('새 작품 {n}개', { n: newN }) : '', extraN ? L('추가 구매 {n}개', { n: extraN }) : '', otherN ? L('기타 구매 {n}개', { n: otherN }) : '', pointsN ? L('포인트 충전 {n}건', { n: pointsN }) : ''].filter(Boolean).join(' / '));
       if (S.nav === 'stats') renderStats();
     } catch (e) { st.busy = false; fail(e); render(); }
   }
@@ -3047,17 +3047,17 @@ function openReceiptOrder(w) {
   const items = [...S.works, ...S.others].filter((x) => x.orderNo === w.orderNo && (!x.entryType || x.entryType === 'other' || x.entryType === 'extra'));
   const total = items.reduce((a, x) => a + (x.paidPrice ?? 0), 0);
   openActions([
-    ...items.map((x) => ({ label: `${x.entryType === 'extra' ? `[${L('추가 구매')}] ` : x.entryType ? `[${x.workKind || L('기타')}] ` : ''}${displayTitle(x).slice(0, 26)} · ${money(x.salePrice, 'JPY')} → ${money(x.paidPrice, 'JPY')}`, run: () => { if (!x.entryType) select(x.id); else if (x.entryType === 'extra') select(x.parentId); } })),
-    { label: `${L('주문')} ${w.orderNo} · ${L('합계')} ${money(w.orderTotal ?? total, 'JPY')}${w.pointsUsed ? ` · ${L('포인트')} ${money(w.pointsUsed, 'JPY')}` : ''}`, run: () => {} },
+    ...items.map((x) => ({ label: `${x.entryType === 'extra' ? `[${L('추가 구매')}] ` : x.entryType ? `[${x.workKind || L('기타')}] ` : ''}${displayTitle(x).slice(0, 26)} / ${money(x.salePrice, 'JPY')} → ${money(x.paidPrice, 'JPY')}`, run: () => { if (!x.entryType) select(x.id); else if (x.entryType === 'extra') select(x.parentId); } })),
+    { label: `${L('주문')} ${w.orderNo} / ${L('합계')} ${money(w.orderTotal ?? total, 'JPY')}${w.pointsUsed ? ` / ${L('포인트')} ${money(w.pointsUsed, 'JPY')}` : ''}`, run: () => {} },
   ]);
 }
 // 폰 앱: 앱으로 실행 중인지, 인터넷 없이 열 준비가 됐는지
 function offlineStatusHtml() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const ready = !!navigator.serviceWorker?.controller;
-  if (standalone && ready) return `<div class="vb-offline">✓ ${L('앱으로 실행 중 · 인터넷 없이도 열려요')}</div>`;
-  if (!standalone) return `<div class="vb-offline no">${L('브라우저에서 열려 있어요 · 홈 화면 아이콘으로 열어 주세요')}</div>`;
-  return `<div class="vb-offline no">${L('오프라인 준비 중 · 인터넷 연결 후 다시 열어 주세요')}</div>`;
+  if (standalone && ready) return `<div class="vb-offline">✓ ${L('앱으로 실행 중이에요. 인터넷 없이도 열려요.')}</div>`;
+  if (!standalone) return `<div class="vb-offline no">${L('브라우저에서 열려 있어요. 홈 화면 아이콘으로 열어 주세요.')}</div>`;
+  return `<div class="vb-offline no">${L('오프라인 준비 중이에요. 인터넷 연결 후 다시 열어 주세요.')}</div>`;
 }
 const APP_VERSION = (() => { const v = document.querySelector('meta[name="vb-version"]')?.content || ''; return /^\d/.test(v) ? v : ''; })();
 // 설정 칸 버튼 글자가 넘치면(일본어·영어 등) 두 줄 배치 → 한 줄에 하나로 바꿔요.
@@ -3092,17 +3092,17 @@ async function openSettings(reuse) {
     <div class="m-head"><h2 tabindex="-1" autofocus>${L("설정")}</h2><button type="button" class="close" data-close aria-label="${L("닫기")}">×</button></div>
     <div class="m-body settings-body">
       ${n.unsupported ? `<div class="set-status">${offlineStatusHtml()}<div class="note">${L("기록은 이 기기 안에 저장돼요.")}</div></div>` : ''}
-      <button type="button" class="set-item set-link set-guide" id="openGuide"><div class="si-label">📖 ${L("사용법")}<small>${L("설치·작품 넣기·영수증·백업·동기화까지 한눈에")}</small></div><span class="si-go">›</span></button>
+      <button type="button" class="set-item set-link set-guide" id="openGuide"><div class="si-label">📖 ${L("사용법")}<small>${L("설치, 작품 넣기, 영수증, 백업, 동기화까지 한눈에")}</small></div><span class="si-go">›</span></button>
       <div class="set-group-title">${esc(tr('viewTitle'))}</div>
       <div class="set-group">
-        ${item(esc(L('디자인')), seg('data-style', S.style, [['office', L('데일리 노트')], ['diary', L('연필 일기장')], ['cute', L('스티커 다이어리')]]), L('글꼴·색·꾸밈이 바뀌어요. 기능은 같아요.'))}
+        ${item(esc(L('디자인')), seg('data-style', S.style, [['office', L('데일리 노트')], ['diary', L('연필 일기장')], ['cute', L('스티커 다이어리')]]), L('글꼴, 색, 꾸밈이 바뀌어요. 기능은 같아요.'))}
         ${(STYLE_TONES[S.style] || []).length > 1 ? item(esc(tr('paletteNote')), seg('data-tone', styleTone(), STYLE_TONES[S.style].map(([v, l, c]) => [v, L(l), `<i class="pal-dot" style="background:${c}"></i>`])), window.VB_MOBILE ? L('아이폰은 홈 화면에 다시 추가하면 아이콘도 이 색이 돼요.') : L('브라우저 탭 아이콘도 이 색이 돼요.')) : ''}
         ${S.style !== 'office' ? '' : item(esc(tr('paletteNote')), seg('data-palette', S.palette, [['indigo', tr('palIndigo'), '<i class="pal-dot" style="background:#3443C4"></i>'], ['green', tr('palGreen'), '<i class="pal-dot" style="background:#2E5A4A"></i>'], ['mono', tr('palMono'), '<i class="pal-dot" style="background:#232323"></i>'], ['burgundy', tr('palBurgundy'), '<i class="pal-dot" style="background:#7A1F33"></i>']]), window.VB_MOBILE ? L('아이폰은 홈 화면에 다시 추가하면 아이콘도 이 색이 돼요.') : L('브라우저 탭 아이콘도 이 색이 돼요.'))}
-        ${item(esc(tr('modeNote')), seg('data-theme-mode', S.theme, [['system', tr('modeSystem')], ['light', tr('modeLight')], ['dark', tr('modeDark')]]), L('자동은 기기의 밝게·어둡게 설정을 따라가요.'))}
-        ${item(esc(tr('langNote')) + (S.menuLang === 'en' ? '' : ' · Language'), seg('data-menu-lang', S.menuLang, [['ko', '한국어'], ['ja', '日本語'], ['en', 'English']]))}
+        ${item(esc(tr('modeNote')), seg('data-theme-mode', S.theme, [['system', tr('modeSystem')], ['light', tr('modeLight')], ['dark', tr('modeDark')]]), L('자동은 기기의 밝게/어둡게 설정을 따라가요.'))}
+        ${item(esc(tr('langNote')) + (S.menuLang === 'en' ? '' : ' / Language'), seg('data-menu-lang', S.menuLang, [['ko', '한국어'], ['ja', '日本語'], ['en', 'English']]))}
         ${isKoUI() ? item(esc(tr('nameModeNote')), seg('data-name-mode', S.nameMode, [['both', tr('nameBoth')], ['ko', tr('nameKo')], ['ja', tr('nameJa')]])) : ''}
         <button type="button" class="set-item set-switch" id="blurSwitch" role="switch" aria-checked="${S.coverBlur}"><div class="si-label">${L('표지 가리기')}<small>${L('표지를 흐리게 해요')}</small></div><span class="switch${S.coverBlur ? ' on' : ''}"></span></button>
-        <button type="button" class="set-item set-switch" id="blSwitch" role="switch" aria-checked="${!!S.blMode}"><div class="si-label">${L('일반/BL 작품 관리 포함')}<small>${L('여성향 외의 장르(일반·BL) 작품도 함께 관리할 때 켜요. 목록·통계·지출에서 나눠 볼 수 있어요.')}</small></div><span class="switch${S.blMode ? ' on' : ''}"></span></button>
+        <button type="button" class="set-item set-switch" id="blSwitch" role="switch" aria-checked="${!!S.blMode}"><div class="si-label">${L('일반/BL 작품 관리 포함')}<small>${L('여성향 외의 장르(일반, BL) 작품도 함께 관리할 때 켜요. 목록, 통계, 지출에서 나눠 볼 수 있어요.')}</small></div><span class="switch${S.blMode ? ' on' : ''}"></span></button>
         ${window.VB_MOBILE ? `<div class="set-item"><div class="si-label">${L('표지 이 기기에 저장')}<small id="coverState">${L('한 번 받아 두면 바로 뜨고 인터넷 없이도 보여요.')}</small></div><button type="button" class="ghost-btn" id="coverPrefetch">${L('모두 받아두기')}</button></div>` : ''}
       </div>
       ${n.unsupported ? '' : `<div class="set-group-title">${L("노션 연결")}</div><div class="set-group set-pad">
@@ -3112,7 +3112,7 @@ async function openSettings(reuse) {
           <div class="set-row"><button type="button" class="ghost-btn" id="syncNow">${L("지금 노션에서 가져오기")}</button><button type="button" class="danger-btn" id="disconnect">${L("연결 해제")}</button></div>
           <div class="note">${L("로컬에서 고친 항목은 '반영 대기'에 남아요.")}</div>`
         : `<div class="note">${L("노션 연결 키를 넣어 주세요. 이 컴퓨터에만 저장돼요.")}<br>
-            ${L("키 만들기:")} <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">notion.so/profile/integrations ↗</a> ${L("→ CD LIST와 성우·서클·태그 DB에 연결 허용(읽기·업데이트·삽입)")}</div>
+            ${L("키 만들기:")} <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener">notion.so/profile/integrations ↗</a> ${L("→ CD LIST와 성우, 서클, 태그 DB에 연결 허용(읽기, 업데이트, 삽입)")}</div>
           <div class="set-row"><input class="input" id="tokenInput" type="password" placeholder="${L("ntn_… 또는 secret_…")}" style="flex:1;min-width:0" autocomplete="off"><button type="button" class="primary-btn" id="connect">${L("연결")}</button></div>`}
       </div>`}
       <div${img.unsupported ? ' hidden' : ''}><div class="set-group-title">${L("이미지 내려받기")}</div><div class="set-group set-pad">
@@ -3123,30 +3123,30 @@ async function openSettings(reuse) {
       </div></div>
       <div class="set-group-title">${L("정리")}</div>
       <div class="set-group">
-        <button type="button" class="set-item set-link" id="openReceipts"><div class="si-label">${L("영수증 메일 가져오기")}<small>${L("DLsite·포케도라 등의 구매 메일로 구매 정보를 한 번에 넣어요")}</small></div><span class="si-go">›</span></button>
-        ${!window.VB_MOBILE || getRelay().url ? `<button type="button" class="set-item set-link" id="openBulkFill"><div class="si-label">${L('비어 있는 작품 정보 채우기')}<small>${L('표지·성우가 빈 작품을 판매 링크로 한꺼번에 채워요')}</small></div><span class="si-go">›</span></button>` : ''}
+        <button type="button" class="set-item set-link" id="openReceipts"><div class="si-label">${L("영수증 메일 가져오기")}<small>${L("DLsite, 포케도라 등의 구매 메일로 구매 정보를 한 번에 넣어요")}</small></div><span class="si-go">›</span></button>
+        ${!window.VB_MOBILE || getRelay().url ? `<button type="button" class="set-item set-link" id="openBulkFill"><div class="si-label">${L('비어 있는 작품 정보 채우기')}<small>${L('표지, 성우가 빈 작품을 판매 링크로 한꺼번에 채워요')}</small></div><span class="si-go">›</span></button>` : ''}
         ${!window.VB_MOBILE || getRelay().url ? `<button type="button" class="set-item set-link" id="openFillCheck"><div class="si-label">${L('정보 채우기 진단')}<small>${L('작품 소개가 짧게 오거나 비어 올 때, 어디서 막히는지 확인해요')}</small></div><span class="si-go">›</span></button>` : ''}
         <button type="button" class="set-item set-link" id="openDupes"><div class="si-label">${L("중복 작품 합치기")}<small>${L("같은 작품 코드가 두 번 있으면 구매 정보는 옮기고 하나로 합쳐요")}</small></div><span class="si-go">›</span></button>
         <button type="button" class="set-item set-link" id="openImgClean"><div class="si-label">${L("쓰지 않는 이미지 정리")}<small id="imgCleanState">${L("작품에서 뺀 지 30일 지난 이미지와 안 쓰는 표지를 지워요")}</small></div><span class="si-go">›</span></button>
-        ${isKoUI() ? `<button type="button" class="set-item set-link" id="openNames"><div class="si-label">${L("성우·서클 이름 정리")}<small>${L("한글 읽기를 한 번에 붙이거나 고쳐요")}</small></div><span class="si-go">›</span></button>` : ''}
+        ${isKoUI() ? `<button type="button" class="set-item set-link" id="openNames"><div class="si-label">${L("성우와 서클 이름 정리")}<small>${L("한글 읽기를 한 번에 붙이거나 고쳐요")}</small></div><span class="si-go">›</span></button>` : ''}
       </div>
       <div class="set-group-title">${L("백업")}</div>
       <div class="set-group">
         <a class="set-item set-link" href="api/backup" download><div class="si-label">${L("복원용 백업 받기")}<small>${window.VB_MOBILE ? L('복원하거나 다른 기기로 옮길 때 써요. 가끔 받아 두세요.') : L('앱을 되돌릴 때 써요. 노션 키는 들어가지 않아요.')}</small></div><span class="si-go">›</span></a>
         <label class="set-item set-link"><div class="si-label">${L("백업에서 복원")}</div><span class="si-go">›</span><input type="file" id="restoreFile" accept=".json,application/json" hidden></label>
-        <button type="button" class="set-item set-link" id="openRecover"><div class="si-label">${L("되돌리기 · 지워진 작품 되살리기")}<small>${window.VB_MOBILE ? L('자동 백업이나 동기화 전 상태로 되돌려요') : L('동기화나 삭제로 지워진 작품을 되살려요')}</small></div><span class="si-go">›</span></button>
-        <div class="set-item"><div class="si-label">${L("내보내기")}<small>${L("엑셀은 보기·보관용, CSV는 노션 등 다른 앱으로 옮길 때 써요. 복원에는 쓸 수 없어요.")}</small></div>
+        <button type="button" class="set-item set-link" id="openRecover"><div class="si-label">${L("되돌리기 / 지워진 작품 되살리기")}<small>${window.VB_MOBILE ? L('자동 백업이나 동기화 전 상태로 되돌려요') : L('동기화나 삭제로 지워진 작품을 되살려요')}</small></div><span class="si-go">›</span></button>
+        <div class="set-item"><div class="si-label">${L("내보내기")}<small>${L("엑셀은 보기, 보관용, CSV는 노션 등 다른 앱으로 옮길 때 써요. 복원에는 쓸 수 없어요.")}</small></div>
           <div class="si-ctl set-row"><a class="ghost-btn" href="api/export/works.xlsx?lang=${S.menuLang}" download>${L("엑셀 (.xlsx)")}</a><a class="ghost-btn" href="api/export/works.csv?lang=${S.menuLang}" download>CSV</a><a class="ghost-btn" href="api/export/reviews.html?lang=${S.menuLang}" target="_blank" rel="noopener">${L("감상 모음 문서 ↗")}</a></div></div>
         ${window.VB_MOBILE ? `<button type="button" class="set-item set-link set-danger" id="setReset"><div class="si-label">${L('이 기기 초기화')}<small>${L('이 기기의 작품을 모두 비우고 서버 연결도 풀어요. 다른 기기는 그대로고, 비우기 전 상태는 자동 백업에 남아요.')}</small></div><span class="si-go">›</span></button>` : ''}
       </div>
-      <details class="set-adv"${advOn ? ' open' : ''}><summary><span>${L("고급")}</span><small>${advOn ? L('연결됨') : L('내 서버 만들기 · 정보 채우기 · 동기화')}</small></summary>
+      <details class="set-adv"${advOn ? ' open' : ''}><summary><span>${L("고급")}</span><small>${advOn ? L('연결됨') : L('내 서버 만들기 / 정보 채우기 / 동기화')}</small></summary>
         <div class="set-group set-pad srv-block">${serverBlockHtml(syncSt)}</div>
       </details>
       <div class="set-about">
-        <div><b>VOICE BOX</b>${APP_VERSION ? ` v${esc(APP_VERSION)}` : ''} · © 2026 <a href="https://x.com/w_coconut" target="_blank" rel="noopener">@w_coconut</a></div>
-        <div>${L('작품 표지와 정보의 저작권은 각 제작사·판매처에 있어요.')}</div>
-        <div>${L('사용한 공개 도구')}: Pretendard (SIL OFL 1.1) · qrcode-generator (MIT)</div>
-        <div>${L('글꼴')}: ${L('강원교육모두체 (강원특별자치도교육청)')} · ${L('나눔스퀘어라운드 (네이버)')} · Klee One · Jua · Mochiy Pop One · Zen Maru Gothic (SIL OFL 1.1)</div>
+        <div><b>VOICE BOX</b>${APP_VERSION ? ` v${esc(APP_VERSION)}` : ''} / © 2026 <a href="https://x.com/w_coconut" target="_blank" rel="noopener">@w_coconut</a></div>
+        <div>${L('작품 표지와 정보의 저작권은 각 제작사, 판매처에 있어요.')}</div>
+        <div>${L('사용한 공개 도구')}: Pretendard (SIL OFL 1.1) / qrcode-generator (MIT)</div>
+        <div>${L('글꼴')}: ${L('강원교육모두체 (강원특별자치도교육청)')} / ${L('나눔스퀘어라운드 (네이버)')} / Klee One / Jua / Mochiy Pop One / Zen Maru Gothic (SIL OFL 1.1)</div>
       </div>
     </div></div>`;
   dlg.querySelector('[data-close]').onclick = () => dlg.close();
@@ -3184,7 +3184,7 @@ async function openSettings(reuse) {
     rememberView();
     $('blSwitch').setAttribute('aria-checked', String(S.blMode)); $('blSwitch').querySelector('.switch').classList.toggle('on', S.blMode);
     renderList(); renderDetail();
-    if (S.blMode) { const g = S.works.filter((w) => audienceOf(w) === 'general').length, b = S.works.filter((w) => audienceOf(w) === 'bl').length; toast(L('판매 링크로 일반 {g}개 · BL {b}개를 찾았어요. 작품 편집에서 바꿀 수 있어요.', { g, b })); }
+    if (S.blMode) { const g = S.works.filter((w) => audienceOf(w) === 'general').length, b = S.works.filter((w) => audienceOf(w) === 'bl').length; toast(L('판매 링크로 일반 {g}개 / BL {b}개를 찾았어요. 작품 편집에서 바꿀 수 있어요.', { g, b })); }
   };
   $('blurSwitch').onclick = () => { setCoverBlur(!S.coverBlur); $('blurSwitch').setAttribute('aria-checked', String(S.coverBlur)); $('blurSwitch').querySelector('.switch').classList.toggle('on', S.coverBlur); };
   dlg.querySelectorAll('[data-style]').forEach((b) => (b.onclick = async () => {
@@ -3224,10 +3224,10 @@ async function openSettings(reuse) {
       const u = await api('api/images/unused');
       if (!u.files && !u.covers) { el.textContent = L('정리할 이미지가 없어요.'); return; }
       const msg = [u.files ? L('쓰지 않는 이미지 {n}개 (약 {mb}MB)', { n: u.files, mb: mb(u.bytes) }) : '', u.covers ? L('어느 작품에도 없는 표지 {n}개', { n: u.covers }) : ''].filter(Boolean).join('\n');
-      el.textContent = msg.replace('\n', ' · ');
-      if (!confirm(msg + '\n\n' + L('지울까요? 작품·자동 백업·최근 30일 이력에 쓰이는 이미지는 남겨요.'))) return;
+      el.textContent = msg.replace('\n', ' / ');
+      if (!confirm(msg + '\n\n' + L('지울까요? 작품, 자동 백업, 최근 30일 이력에 쓰이는 이미지는 남겨요.'))) return;
       const r = await api('api/images/cleanup', { body: {} });
-      el.textContent = L('이미지 {n}개 · 표지 {c}개를 정리했어요. (약 {mb}MB)', { n: r.removed, c: r.covers, mb: mb(r.bytes) });
+      el.textContent = L('이미지 {n}개 / 표지 {c}개를 정리했어요. (약 {mb}MB)', { n: r.removed, c: r.covers, mb: mb(r.bytes) });
     } catch (e) { fail(e); el.textContent = ''; }
   };
   $('openDupes').onclick = () => { $('settings').close(); openDupes(); };
@@ -3293,7 +3293,7 @@ async function openSettings(reuse) {
       let merge = confirm(L("백업의 작품 {n}개를 지금 기록과 합칠까요?\n\n[확인] 합치기 — 같은 작품은 최근에 고친 쪽을 남기고, 없는 작품은 추가해요. (다른 기기에서 고친 내용을 가져올 때)\n[취소] 다른 방법 고르기", { n: count }));
       if (!merge && !confirm(L("지금 기록을 백업 내용({n}개)으로 전부 바꿀까요?\n지금 기록은 따로 보관돼요.", { n: count }))) return;
       const r = await api('api/restore', { body: { ...data, merge } });
-      toast(merge ? `${L("합쳤어요 · 새 작품")} ${r.added}${L("개, 바뀐 작품")} ${r.updated}${L("개")}` : L('복원했어요.'));
+      toast(merge ? `${L("합쳤어요. 새 작품")} ${r.added}${L("개, 바뀐 작품")} ${r.updated}${L("개")}` : L('복원했어요.'));
       dlg.close();
       load();
     } catch (err) { fail(err); }
@@ -3301,11 +3301,11 @@ async function openSettings(reuse) {
   if (n.running) pollSync();
   if (img.running) pollImages(total);
 }
-const syncText = (n) => n.running ? `${L("가져오는 중 ·")} ${n.processed}${L("개 확인 (새 작품")} ${n.added}${L(", 바뀐 작품")} ${n.updated})`
+const syncText = (n) => n.running ? `${L("가져오는 중:")} ${n.processed}${L("개 확인 (새 작품")} ${n.added}${L(", 바뀐 작품")} ${n.updated})`
   : n.error ? L('오류: ') + n.error
-    : n.lastSync ? `${L("마지막 가져오기:")} ${new Date(n.lastSync).toLocaleString(LOCALE())}${n.finishedAt && n.processed ? ` ${L("· 새 작품")} ${n.added}${L(", 바뀐 작품")} ${n.updated}` : ''}` : L('아직 가져온 적 없어요.');
-const imgText = (s, total) => s.running ? `${L("받는 중 ·")} ${s.done}/${s.total} ${L("(실패")} ${s.failed})`
-  : `${L("저장된 이미지")} ${s.cached ?? 0}${L("개 / 전체")} ${total}${L("개")}${s.total ? ` ${L("· 지난번:")} ${s.saved}${L("개 저장,")} ${s.failed}${L("개 실패")}` : ''}${s.failures?.length ? `<br>${L("실패 예:")} ${esc(s.failures[0].error)}` : ''}`;
+    : n.lastSync ? `${L("마지막 가져오기:")} ${new Date(n.lastSync).toLocaleString(LOCALE())}${n.finishedAt && n.processed ? ` ${L("/ 새 작품")} ${n.added}${L(", 바뀐 작품")} ${n.updated}` : ''}` : L('아직 가져온 적 없어요.');
+const imgText = (s, total) => s.running ? `${L("받는 중:")} ${s.done}/${s.total} ${L("(실패")} ${s.failed})`
+  : `${L("저장된 이미지")} ${s.cached ?? 0}${L("개 / 전체")} ${total}${L("개")}${s.total ? ` ${L("/ 지난번:")} ${s.saved}${L("개 저장,")} ${s.failed}${L("개 실패")}` : ''}${s.failures?.length ? `<br>${L("실패 예:")} ${esc(s.failures[0].error)}` : ''}`;
 async function pollSync() {
   clearTimeout(settingsTimer);
   try {
@@ -3338,8 +3338,8 @@ async function openHistory(id) {
   const list = await api(`api/works/${encodeURIComponent(id)}/history`).catch((e) => (fail(e), []));
   const item = (h) => {
     const keys = Object.keys(h.data || {}).filter((k) => FIELD_KO[k]);
-    const preview = keys.slice(0, 6).map((k) => `${FIELD_KO[k]}: ${esc(String(fmt(h.data[k], k)).slice(0, 40))}`).join(' · ');
-    return `<div class="hist"><div class="hist-head"><span>${esc(L(HIST_REASON[h.reason] || h.reason))} · ${new Date(h.at).toLocaleString(LOCALE())}</span>${keys.length ? `<button type="button" class="link-btn" data-restore="${esc(h.at)}">${L("이 전 상태로 되돌리기")}</button>` : ''}</div><div class="hist-fields">${preview || L('변경 내용 없음')}</div></div>`;
+    const preview = keys.slice(0, 6).map((k) => `${FIELD_KO[k]}: ${esc(String(fmt(h.data[k], k)).slice(0, 40))}`).join(' / ');
+    return `<div class="hist"><div class="hist-head"><span>${esc(L(HIST_REASON[h.reason] || h.reason))} / ${new Date(h.at).toLocaleString(LOCALE())}</span>${keys.length ? `<button type="button" class="link-btn" data-restore="${esc(h.at)}">${L("이 전 상태로 되돌리기")}</button>` : ''}</div><div class="hist-fields">${preview || L('변경 내용 없음')}</div></div>`;
   };
   dlg.innerHTML = `<div class="m-body-wrap"><div class="m-head"><h2>${L("수정 이력")}</h2><button type="button" class="close" data-close aria-label="${L("닫기")}">×</button></div>
     <div class="m-body"><div class="note">${L("바뀌기 전 값으로 되돌릴 수 있어요.")}</div>${list.length ? list.map(item).join('') : `<div class="note">${L("아직 기록이 없어요.")}</div>`}</div></div>`;
@@ -3507,7 +3507,7 @@ const STAT_KINDS = [
   ['rating', L('별점'), (w) => [w.rating ? '★'.repeat(w.rating) : L('별점 없음')]],
   ['status', L('청취 상태'), (w) => [{ '미청취': L('안 들음'), '청취 중': L('듣는 중'), '청취 완료': L('들음') }[w.status] || L('상태 미기재')]],
   ['store', L('구매처별'), (w) => (w.store ? [w.store] : [])],
-  ['workType', L('동인·상업'), (w) => [w.workType ? L(w.workType) : L('미분류')]],
+  ['workType', L('동인 / 상업'), (w) => [w.workType ? L(w.workType) : L('미분류')]],
   ['audience', L('장르 구분'), (w) => [audLabel(audienceOf(w))]],
   ['spend', L('지출'), null],
 ];
@@ -3565,7 +3565,7 @@ function donutSvg(rows, total) {
       ? `M ${C} ${C - R} A ${R} ${R} 0 1 1 ${C - 0.01} ${C - R} L ${C - 0.01} ${C - r} A ${r} ${r} 0 1 0 ${C} ${C - r} Z`
       : `M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${r} ${r} 0 ${large} 0 ${x4} ${y4} Z`;
     const label = S.statKind === 'actor' ? nameText(x.key) : S.statKind === 'store' ? storeLabel(x.key) : x.key;
-    return `<path d="${d}" fill="${x.color}" ${x.other ? '' : `data-stat-key="${esc(x.key)}"`} class="seg"><title>${esc(label)} · ${x.n}${L("개 (")}${(x.n / total * 100).toFixed(1)}%)</title></path>`;
+    return `<path d="${d}" fill="${x.color}" ${x.other ? '' : `data-stat-key="${esc(x.key)}"`} class="seg"><title>${esc(label)} / ${x.n}${L("개 (")}${(x.n / total * 100).toFixed(1)}%)</title></path>`;
   }).join('');
   return { svg: `<svg viewBox="0 0 300 300" class="donut" role="img" aria-label="${esc(STAT_KINDS.find((k) => k[0] === S.statKind)[1])} ${L("비율")}">${segs}
     <text x="150" y="146" text-anchor="middle" class="donut-num">${total.toLocaleString()}</text>
@@ -3622,7 +3622,7 @@ function renderStats() {
     <div class="stat-body">
       <div class="donut-wrap">${svg}</div>
       <div class="stat-legend">
-        <div class="note">${kindLabel} ${rows.length.toLocaleString()}${L("개")}${isKoUI() && (S.statKind === 'actor' || S.statKind === 'circle') ? ` · <button type="button" class="link-btn" data-open-names="${S.statKind === 'circle' ? 'circle' : 'missing'}">${L('이름 정리')}</button>` : ''}</div>
+        <div class="note">${kindLabel} ${rows.length.toLocaleString()}${L("개")}${isKoUI() && (S.statKind === 'actor' || S.statKind === 'circle') ? ` / <button type="button" class="link-btn" data-open-names="${S.statKind === 'circle' ? 'circle' : 'missing'}">${L('이름 정리')}</button>` : ''}</div>
         <div id="legRows"></div>
         <div class="leg-more" id="statMore"></div>
       </div>
@@ -3699,13 +3699,13 @@ function renderSpend() {
     </div>
     <div class="stat-cards">
       <div class="stat-card"><div class="sc-label">${yearView ? L('전체 지출') : S.spendYear + L('년 지출')}</div><div class="sc-num">${money(total, cur) || money(0, cur)}</div></div>
-      <div class="stat-card"><div class="sc-label">${L("월 평균 · 산 달 기준")}</div><div class="sc-num">${money(activeMonths ? total / activeMonths : 0, cur)}</div></div>
+      <div class="stat-card"><div class="sc-label">${L("월 평균 (산 달 기준)")}</div><div class="sc-num">${money(activeMonths ? total / activeMonths : 0, cur)}</div></div>
       <div class="stat-card"><div class="sc-label">${L("구매한 작품")}</div><div class="sc-num">${scope.length.toLocaleString()}</div></div>
       <div class="stat-card"><div class="sc-label">${L("할인으로 아낀 금액")}</div><div class="sc-num">${money(saved, cur)}</div></div>
     </div>
     <div class="stat-body spend-body">
       ${bought.length ? '' : `<div class="note">${L("아직 구매 정보가 없어요.")}</div>`}
-      <div class="bars${yearView ? ' bars-year' : ''}" role="list" style="${yearView ? `grid-template-columns:repeat(${Math.max(keys.length, 3)}, minmax(0, 1fr))` : ''}">${keys.map((k) => { const r = groups.get(k); return `<button type="button" class="bar${S.spendMonth === k ? ' on' : ''}" ${yearView ? `data-spend-goyear="${k}"` : `data-spend-month="${k}"`} role="listitem" title="${k} · ${money(r.sum, cur)} · ${r.n}${L("개")}">
+      <div class="bars${yearView ? ' bars-year' : ''}" role="list" style="${yearView ? `grid-template-columns:repeat(${Math.max(keys.length, 3)}, minmax(0, 1fr))` : ''}">${keys.map((k) => { const r = groups.get(k); return `<button type="button" class="bar${S.spendMonth === k ? ' on' : ''}" ${yearView ? `data-spend-goyear="${k}"` : `data-spend-month="${k}"`} role="listitem" title="${k} / ${money(r.sum, cur)} / ${r.n}${L("개")}">
         <span class="bar-v">${r.sum ? money(r.sum, cur) : ''}</span>
         <span class="bar-track"><span class="bar-fill" style="height:${r.sum ? Math.max(3, Math.round(r.sum / max * 100)) : 0}%"></span></span>
         <span class="bar-m">${label(k)}</span></button>`; }).join('')}</div>
@@ -3716,7 +3716,7 @@ function renderSpend() {
         <div class="st-row st-total"><span>${L('합계')}</span><span>${scope.length}${L('개')}</span><span class="st-sum">${money(total, cur)}</span><span class="${!yearView && saved ? 'st-saved' : ''}">${yearView ? money(activeMonths ? total / activeMonths : 0, cur) : saved ? money(saved, cur) : '–'}</span></div>
         <p class="note">${yearView ? L('연도를 누르면 그해 월별로 넘어가요.') : L('월을 누르면 그달 산 작품이 보여요.')}</p>
       </div>` : ''}
-      ${S.spendMonth ? `<div class="spend-month"><div class="sec-head"><h3>${S.spendMonth.replace('-', ' / ')} · ${money(groups.get(S.spendMonth).sum, cur)}</h3><button type="button" class="link-btn" data-spend-month="">${L("닫기")}</button></div>
+      ${S.spendMonth ? `<div class="spend-month"><div class="sec-head"><h3>${S.spendMonth.replace('-', ' / ')} / ${money(groups.get(S.spendMonth).sum, cur)}</h3><button type="button" class="link-btn" data-spend-month="">${L("닫기")}</button></div>
         ${(() => {
           // 묶음 구매는 한 줄로 (결제한 금액 그대로)
           const seen = new Set();
@@ -3767,7 +3767,7 @@ $('stats').addEventListener('click', (e) => {
   const ot = e.target.closest('[data-other]');
   if (ot) {
     const w = S.others.find((x) => x.id === ot.dataset.other);
-    if (w) openActions([{ label: `${w.title} · ${money(w.paidPrice, 'JPY')}`, run: () => {} },
+    if (w) openActions([{ label: `${w.title} / ${money(w.paidPrice, 'JPY')}`, run: () => {} },
       { label: L('음성 작품으로 되돌리기'), run: async () => { try { await api('api/works/' + encodeURIComponent(w.id), { method: 'PATCH', body: { entryType: '', workKind: '음성' } }); await load(); renderStats(); toast(L('음성 작품 목록으로 되돌렸어요.')); } catch (e) { fail(e); } } },
       { label: L('이 기타 구매 지우기'), danger: true, run: async () => { if (!confirm(L('이 기록을 지울까요?'))) return; await api('api/works/' + encodeURIComponent(w.id), { method: 'DELETE' }).catch(fail); await load(); renderStats(); } }]);
     return;
@@ -3844,7 +3844,7 @@ load().then(() => {
   const back = location.hash.match(/^#open=(.+)$/);
   if (back) { history.replaceState(null, '', location.pathname + location.search); select(decodeURIComponent(back[1]), { push: false }); }
   if (S.solo) {
-    select(S.solo, { push: false }).then(() => { if (S.detail) document.title = displayTitle(S.detail) + ' · VOICE BOX'; });
+    select(S.solo, { push: false }).then(() => { if (S.detail) document.title = displayTitle(S.detail) + ' - VOICE BOX'; });
   }
   if (S.notion.running) pollSync();
 }).catch((e) => {

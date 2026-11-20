@@ -31,7 +31,7 @@
   const MSG = {
     en: { err: 'Something went wrong.', loading: 'Loading…', refill: 'Refill from VOICE BOX', save: 'Save to app', saveTip: 'Shows this card on the work page in VOICE BOX', page: 'Review card', noCover: "Couldn't get the cover. Please upload it yourself.", curCard: 'Current card', makeFail: "Couldn't make the card image.", saving: 'Saving…', reviewDiff: 'The card text differs from your review.\nUpdate your review with the card text?', savedN: 'Saved {n} cards.', saved: 'Card saved.', refillAsk: 'Refill title, cast, circle, tags, review, rating and cover from VOICE BOX?' },
     ja: { err: 'うまくいきませんでした。', loading: '読み込み中…', refill: '作品情報をもう一度入れる', save: 'アプリに保存', saveTip: 'VOICE BOX の作品ページにこのカードが出ます', page: 'レビューカード', noCover: '表紙を取得できませんでした。画像を直接アップロードしてください。', curCard: '今のカード', makeFail: 'カード画像を作れませんでした。', saving: '保存中…', reviewDiff: 'カードの文章が感想と違います。\nカードの文章で感想も更新しますか？', savedN: 'カード({n}枚)を保存しました。', saved: 'カードを保存しました。', refillAsk: 'タイトル・声優・サークル・タグ・感想・評価・表紙を VOICE BOX の内容で入れ直しますか？' },
-  }[LANG] || { err: '요청을 처리하지 못했어요.', loading: '불러오는 중…', refill: '작품 정보 다시 채우기', save: '앱에 대표 카드로 저장', saveTip: 'VOICE BOX 작품 상세에 이 카드가 보여요', page: '리뷰카드', noCover: '표지를 가져오지 못했어요. 썸네일은 직접 올려 주세요.', curCard: '지금 대표 카드', makeFail: '카드 이미지를 만들지 못했어요.', saving: '저장 중…', reviewDiff: '카드의 리뷰 글이 VOICE BOX 감상과 달라요.\n카드의 글로 감상도 바꿀까요?', savedN: '대표 카드({n}장)를 저장했어요.', saved: '대표 카드를 저장했어요.', refillAsk: '제목·성우·서클·장르·감상·별점·표지를 VOICE BOX 내용으로 다시 채울까요?' };
+  }[LANG] || { err: '요청을 처리하지 못했어요.', loading: '불러오는 중…', refill: '작품 정보 다시 채우기', save: '앱에 대표 카드로 저장', saveTip: 'VOICE BOX 작품 상세에 이 카드가 보여요', page: '리뷰카드', noCover: '표지를 가져오지 못했어요. 썸네일은 직접 올려 주세요.', curCard: '지금 대표 카드', makeFail: '카드 이미지를 만들지 못했어요.', saving: '저장 중…', reviewDiff: '카드의 리뷰 글이 VOICE BOX 감상과 달라요.\n카드의 글로 감상도 바꿀까요?', savedN: '대표 카드({n}장)를 저장했어요.', saved: '대표 카드를 저장했어요.', refillAsk: '제목, 성우, 서클, 장르, 감상, 별점, 표지를 VOICE BOX 내용으로 다시 채울까요?' };
   const BACK = { en: 'Back', ja: '戻る' }[LANG] || '돌아가기';
   const isPhoneApp = /reviewcard\.html$/.test(location.pathname);
 
@@ -89,12 +89,12 @@
   // 간단 화면: 작품 정보는 VOICE BOX에서 자동으로 채우니 입력칸은 숨기고 디자인만 골라요. (?full=1 이면 원래 메이커 그대로)
   const LITE = !new URLSearchParams(location.search).has('full');
   const tx = {
-    ko: { full: '전체 편집 (모든 칸)', simple: '간단 화면으로', more: '더 보기', look: '꾸미기', content: '내용', cover: '표지', seen: '카드에 보일 것', words: '카드 글', textNote: '카드에만 쓰는 제목·글이에요. 앱의 제목은 바뀌지 않아요. 감상은 저장할 때 반영할지 물어봐요.', down: '이미지로 저장', downTip: '사진첩·다운로드 폴더에 그림 파일로 받아요', qr: 'QR 코드 (판매 링크)', colorsMore: '더 보기', colorsLess: '접기', prev: '이전 장', next: '다음 장' },
+    ko: { full: '전체 편집 (모든 칸)', simple: '간단 화면으로', more: '더 보기', look: '꾸미기', content: '내용', cover: '표지', seen: '카드에 보일 것', words: '카드 글', textNote: '카드에만 쓰는 제목, 글이에요. 앱의 제목은 바뀌지 않아요. 감상은 저장할 때 반영할지 물어봐요.', down: '이미지로 저장', downTip: '사진첩, 다운로드 폴더에 그림 파일로 받아요', qr: 'QR 코드 (판매 링크)', colorsMore: '더 보기', colorsLess: '접기', prev: '이전 장', next: '다음 장' },
     en: { full: 'Full editor (all fields)', simple: 'Back to simple view', more: 'More', look: 'Style', content: 'Content', cover: 'Cover', seen: 'Show on card', words: 'Card text', textNote: 'Title and text for this card only. The app title stays the same. You will be asked before your review changes.', down: 'Save image', downTip: 'Download the card as a picture file', qr: 'QR code (store link)', colorsMore: 'More', colorsLess: 'Less', prev: 'Previous page', next: 'Next page' },
     ja: { full: 'フル編集 (すべての項目)', simple: 'かんたん表示に戻る', more: 'その他', look: 'デザイン', content: '内容', cover: '表紙', seen: 'カードに出すもの', words: 'カードの文章', textNote: 'カード用のタイトル・文章です。アプリのタイトルは変わりません。感想は保存時に反映するか確認します。', down: '画像を保存', downTip: 'カードを画像ファイルとして保存します', qr: 'QRコード (販売リンク)', colorsMore: 'もっと見る', colorsLess: '閉じる', prev: '前のページ', next: '次のページ' },
   }[LANG] || null;
   const UIL = {
-    ko: { cardLang: '카드 언어', layout: '카드 모양', player: '세로형', classic: '가로형', theme: '테마', thumb: '표지', title: '카드에 쓸 제목', rating: '등급', heart: '수위 · 농도', headline: '한줄 코멘트', review: '리뷰', fontSize: '글씨 크기', color: '글씨 색', reviewer: '작성자', spoiler: '스포일러 주의 표시', date: '작성일 표시', edit: '편집', change: '변경', del: '제거' },
+    ko: { cardLang: '카드 언어', layout: '카드 모양', player: '세로형', classic: '가로형', theme: '테마', thumb: '표지', title: '카드에 쓸 제목', rating: '등급', heart: '수위 / 농도', headline: '한줄 코멘트', review: '리뷰', fontSize: '글씨 크기', color: '글씨 색', reviewer: '작성자', spoiler: '스포일러 주의 표시', date: '작성일 표시', edit: '편집', change: '변경', del: '제거' },
     en: { cardLang: 'Card language', layout: 'Card shape', player: 'Portrait', classic: 'Landscape', theme: 'Theme', thumb: 'Cover', title: 'Title on the card', rating: 'Age rating', heart: 'Heat level', headline: 'One-line comment', review: 'Review', fontSize: 'Text size', color: 'Text color', reviewer: 'Author', spoiler: 'Spoiler warning', date: 'Show date', edit: 'Edit', change: 'Change', del: 'Remove' },
     ja: { cardLang: 'カードの言語', layout: 'カードの形', player: '縦型', classic: '横型', theme: 'テーマ', thumb: '表紙', title: 'カードのタイトル', rating: 'レーティング', heart: '濃さ', headline: 'ひとことコメント', review: 'レビュー', fontSize: '文字サイズ', color: '文字色', reviewer: '作成者', spoiler: 'ネタバレ注意を表示', date: '作成日を表示', edit: '編集', change: '変更', del: '削除' },
   }[LANG] || null;
@@ -223,7 +223,7 @@
       .vb-lite .vb-themes i { display: block; width: 44px; height: 44px; border-radius: 11px; border: 1px solid var(--border); box-sizing: border-box; }
       .vb-lite .vb-themes button.on i { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--vb-acc); }
       .vb-lite .vb-themes .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-      .vb-lite #lblTheme[data-name]::after { content: ' · ' attr(data-name); color: var(--vb-acc); }
+      .vb-lite #lblTheme[data-name]::after { content: ' / ' attr(data-name); color: var(--vb-acc); }
       @media (min-width: 901px) { .vb-lite .vb-themes { flex-wrap: wrap; overflow: visible; } }
       /* 글씨 색: 처음엔 6개만 */
       .vb-lite .color-grid { gap: 10px; padding: 0; background: none; border: none; align-items: center; }
@@ -405,7 +405,7 @@
   async function fill() {
     work = await api('api/works/' + encodeURIComponent(workId));
     $('vbWork').textContent = work.titleKo || work.title;
-    document.title = MSG.page + ' · ' + (work.titleKo || work.title);
+    document.title = MSG.page + ' - ' + (work.titleKo || work.title);
     const ex0 = readExtra();
     setInput('inTitle', ex0.cardTitle || work.titleKo || work.title);
     setInput('inArtist', String(work.actor || '').split(',').map((s) => s.trim()).filter(Boolean).join(', '));

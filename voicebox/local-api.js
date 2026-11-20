@@ -259,7 +259,7 @@ const relayFetcher = (cfg) => async (u) => {
 };
 async function relayInfo(body) {
   const cfg = relayConfig();
-  const paste = msg('판매 페이지 글을 원문 칸에 붙여넣고 "원문에서 작품명·성우·발매일 찾기"를 눌러도 돼요.', 'You can also paste the store page text into the original tab and use "Find title, actors and date".', '販売ページの文章を原文欄に貼り付けて「原文から作品名・声優・発売日を探す」も使えます。');
+  const paste = msg('판매 페이지 글을 원문 칸에 붙여넣고 "원문에서 정보 찾기"를 눌러도 돼요.', 'You can also paste the store page text into the original tab and use "Find info in the original".', '販売ページの文章を原文欄に貼り付けて「原文から情報を探す」も使えます。');
   if (!cfg?.url || !cfg?.key) throw new ApiError(msg('설정 → 고급에서 정보 채우기 서버를 먼저 연결해 주세요. ', 'Connect the info server in Settings → Advanced first. ', '先に設定 → 詳細設定で情報取得サーバーを接続してください。') + paste);
   // 서버 8판부터: 서버는 판매 페이지만 받아다 주고, 정보 골라내기는 앱이 해요.
   // 예전 서버(7판 이하)거나 이 방식이 실패하면 예전처럼 서버에 통째로 맡겨요.
