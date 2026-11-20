@@ -1271,3 +1271,11 @@ body.home-mode .main-head { display: none; }
 /* 통계·지출에서 넘어온 목록: 돌아가기 버튼 */
 .jump-back { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--text-2); border-radius: 999px; padding: 4px 12px 4px 9px; font: inherit; font-size: 13px; margin-right: 8px; cursor: pointer; white-space: nowrap; }
 .jump-back:hover { border-color: var(--muted); }
+
+/* 설정 맨 아래: 글꼴·공개 도구는 접어 두기, ©는 기본 글꼴로(일부 손글씨 글꼴에 없음) */
+.set-about .cmark { font-family: -apple-system, system-ui, "Segoe UI", sans-serif; }
+.set-about .about-more summary { display: inline-block; cursor: pointer; list-style: none; text-decoration: underline; text-underline-offset: 3px; }
+.set-about .about-more summary::-webkit-details-marker { display: none; }
+.set-about .about-more summary::after { content: ' ▾'; }
+.set-about .about-more[open] summary::after { content: ' ▴'; }
+.set-about .about-more > div { margin-top: 4px; }

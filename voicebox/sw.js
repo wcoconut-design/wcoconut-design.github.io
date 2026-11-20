@@ -1,6 +1,6 @@
 // Copyright 2026 @w_coconut. All rights reserved.
 // VOICE BOX 폰 앱: 인터넷이 없어도 열리게 앱 파일을 저장해 두고, 직접 첨부한 이미지를 보여줍니다.
-const VERSION = 'd82a81e4ff';
+const VERSION = 'da7517856c';
 // 짧은 주소(/voicebox/)와 예전 주소의 앱이 서로의 저장본을 지우지 않게 이름에 폴더를 붙여요.
 const SCOPE_TAG = new URL(self.registration.scope).pathname;
 const SHELL = `vb-shell-${VERSION}-${SCOPE_TAG}`;
