@@ -3151,7 +3151,8 @@ async function openSettings(reuse) {
         <div>${L('작품 표지와 정보의 저작권은 각 제작사, 판매처에 있어요.')}</div>
         <details class="about-more"><summary>${L('글꼴과 공개 도구')}</summary>
           <div>${L('사용한 공개 도구')}: qrcode-generator (MIT)</div>
-          <div>${L('글꼴')}: Pretendard / ${L('강원교육모두체 (강원특별자치도교육청)')} / ${L('나눔스퀘어라운드 (네이버)')} / Klee One / Jua / Mochiy Pop One / Zen Maru Gothic (SIL OFL 1.1)</div>
+          <div>${L('글꼴')}: Pretendard / ${L('나눔스퀘어라운드 (네이버)')} / Klee One / Jua / Mochiy Pop One / Zen Maru Gothic (SIL OFL 1.1)</div>
+          <div>${L('강원교육모두체 (강원특별자치도교육청)')}</div>
         </details>
       </div>
     </div></div>`;
