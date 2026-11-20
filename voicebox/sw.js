@@ -1,6 +1,6 @@
 // Copyright 2026 @w_coconut. All rights reserved.
 // VOICE BOX 폰 앱: 인터넷이 없어도 열리게 앱 파일을 저장해 두고, 직접 첨부한 이미지를 보여줍니다.
-const VERSION = '1fbd7880f7';
+const VERSION = '65b0df4ecc';
 // 짧은 주소(/voicebox/)와 예전 주소의 앱이 서로의 저장본을 지우지 않게 이름에 폴더를 붙여요.
 const SCOPE_TAG = new URL(self.registration.scope).pathname;
 const SHELL = `vb-shell-${VERSION}-${SCOPE_TAG}`;
@@ -22,7 +22,8 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   const scope = new URL(self.registration.scope);
   // 디자인 스타일 글꼴(Google Fonts): 한 번 받으면 저장해 두고 인터넷 없이도 써요.
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+  // 리뷰카드 창의 글꼴·QR 코드 도구(jsDelivr)도 한 번 받으면 저장해 둬요.
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' || url.hostname === 'cdn.jsdelivr.net') {
     e.respondWith(fontFetch(req));
     return;
   }

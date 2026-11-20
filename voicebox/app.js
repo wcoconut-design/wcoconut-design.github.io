@@ -1367,7 +1367,7 @@ function renderDetail() {
     ${w.images.length > 1 ? `<section><div class="sec-head"><h2>${L("이미지")} ${w.images.length}</h2></div><div class="gallery">${w.images.map((src, i) => `<img src="${esc(imgUrl(src))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-act="zoom" data-i="${i}">`).join('')}</div></section>` : ''}
     ${notionHtml}
     <div class="d-links">
-      ${w.url ? `<a href="${esc(w.url)}" target="_blank" rel="noopener">${L("판매 페이지 ↗")}</a>` : ''}
+      ${/^https?:\/\//i.test(w.url || '') ? `<a href="${esc(w.url)}" target="_blank" rel="noopener">${L("판매 페이지 ↗")}</a>` : ''}
       ${w.notionPageId ? `<a href="https://www.notion.so/${esc(w.notionPageId.replace(/-/g, ''))}" target="_blank" rel="noopener">${L("노션 원본 ↗")}</a>` : ''}
       <button type="button" data-act="history">${L("수정 이력")}</button>
       ${S.notion.connected && w.notionPageId && !pending.length ? `<button type="button" data-act="push">${L("노션과 비교")}</button>` : ''}
