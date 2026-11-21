@@ -79,6 +79,7 @@ window.VB_GUIDE = {
           '쿠폰은 **쿠폰, 이벤트 할인**을 펼쳐서 넣어요.',
           '**최종 구매금**은 자동으로 계산돼요.',
           '묶음 할인 이벤트(예: 3개 999엔)로 샀다면 **+ 같이 산 작품 묶기**로 묶어요. 낸 금액이 작품마다 나눠져요.',
+          '실물 CD는 **형태**에서 **CD**를 골라요. **배송비, 수수료**와 **특전** 칸이 나오고, 배송비는 최종 구매금에 더해져요.',
         ] },
         { more: true, h: '작품 소개와 번역', steps: [
           '**일본어 원문** 탭에 판매 페이지 소개글을 붙여넣어요.',
@@ -261,6 +262,7 @@ window.VB_GUIDE = {
           'For coupons, open **Coupon / event discount**.',
           'The **final price** is calculated automatically.',
           'Bought in a bundle sale (e.g. 3 for ¥999)? Use **+ Group works bought together**. The total is split across the works.',
+          'For a physical CD, choose **CD** under **Format**. **Shipping, fees** and **Bonus** appear, and shipping is added to the final price.',
         ] },
         { more: true, h: 'Description and translation', steps: [
           'Paste the store description in the **Japanese original** tab.',
@@ -435,6 +437,7 @@ window.VB_GUIDE = {
           'クーポンは **クーポン、イベント割引** を開いて入れます。',
           '**最終購入額** は自動で計算されます。',
           'まとめ買いセール（例: 3本999円）で買ったら **+ 一緒に買った作品をまとめる** でまとめます。支払った金額が作品ごとに分けられます。',
+          '実物CDは **形態** で **CD** を選びます。**送料、手数料** と **特典** の欄が出て、送料は最終購入額に加算されます。',
         ] },
         { more: true, h: '作品紹介', steps: [
           '**日本語原文** タブに販売ページの紹介文を貼り付けます。',

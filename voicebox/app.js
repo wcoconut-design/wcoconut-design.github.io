@@ -10,7 +10,7 @@ const S = {
   folders: [],
   notion: {},
   nav: 'all',         // all | played | unplayed | fav | reviewed | unreviewed | hidden | pending | folder:이름
-  q: '', actor: '', circle: '', tag: '', rating: '', wt: '', sort: 'bought',
+  q: '', actor: '', circle: '', tag: '', rating: '', wt: '', fmt: '', sort: 'bought',
   shown: 60,          // 화면에 그린 개수 (스크롤하면 늘어남)
   selected: null,     // 선택한 작품 id
   detail: null,       // 선택한 작품 전체 데이터
@@ -453,6 +453,7 @@ function filtered() {
   if (S.circle) list = list.filter((w) => splitNames(w.circle).includes(S.circle));
   if (S.tag) list = list.filter((w) => w.tags.includes(S.tag));
   if (S.wt) list = list.filter((w) => w.workType === S.wt);
+  if (S.fmt) list = list.filter((w) => (w.format === 'cd' ? 'cd' : 'download') === S.fmt);
   if (S.store) list = list.filter((w) => (S.store === NO_STORE ? !w.store : w.store === S.store));
   if (S.blMode && S.aud) list = list.filter((w) => audienceOf(w) === S.aud);
   if (S.rating !== '') list = list.filter((w) => (S.rating === '0' ? !w.rating : w.rating >= Number(S.rating)));
@@ -529,7 +530,7 @@ document.addEventListener('error', (e) => {
 }, true);
 
 const rowAttrs = (w, cls) => `class="row ${cls}${S.selected === w.id ? ' on' : ''}${w.hidden ? ' is-hidden' : ''}${S.selectMode && S.picked.has(w.id) ? ' picked' : ''}" role="listitem" tabindex="0" data-id="${esc(w.id)}"`;
-const marks = (w) => (w.hidden ? `<span class="tag-hidden">${L("숨김")}</span>` : '') + (pendingTest(w) ? `<span class="dot-pending" title="${L("노션 반영 대기")}"></span>` : '');
+const marks = (w) => (w.format === 'cd' ? '<span class="tag-cd">CD</span>' : '') + (w.hidden ? `<span class="tag-hidden">${L("숨김")}</span>` : '') + (pendingTest(w) ? `<span class="dot-pending" title="${L("노션 반영 대기")}"></span>` : '');
 const starsHtml = (w) => (w.rating ? `<span class="stars-sm" aria-label="${L('별점')} ${w.rating}">${'★'.repeat(w.rating)}</span>` : '');
 const starNum = (w) => (w.rating ? `<span class="stars-num" aria-label="${L('별점')} ${w.rating}">★ ${w.rating}</span>` : '');
 const listeningPill = (w) => (w.status === '청취 중' ? `<span class="pill-now">${L('듣는 중')}</span>` : '');
@@ -772,7 +773,7 @@ selBar.addEventListener('click', async (e) => {
 });
 
 // ===== 중복 작품 합치기: 같은 작품 코드가 여러 개면 하나만 남기고, 구매 정보는 남길 작품으로 옮겨요 =====
-const BUY_FIELDS = ['purchaseDate', 'store', 'salePrice', 'paidPrice', 'currency', 'couponType', 'couponValue', 'couponMemo', 'discountNote', 'paidManual', 'orderId', 'orderType', 'orderValue', 'orderTotal', 'orderCount', 'orderNo', 'pointsUsed', 'packCode', 'packTitle'];
+const BUY_FIELDS = ['purchaseDate', 'store', 'salePrice', 'paidPrice', 'currency', 'couponType', 'couponValue', 'couponMemo', 'discountNote', 'paidManual', 'orderId', 'orderType', 'orderValue', 'orderTotal', 'orderCount', 'orderNo', 'pointsUsed', 'packCode', 'packTitle', 'format', 'shipping', 'bonus', 'orderShipping'];
 function findDupes() {
   const by = new Map();
   for (const w of S.works) { const c = (w.code || '').trim().toUpperCase(); if (!c) continue; if (!by.has(c)) by.set(c, []); by.get(c).push(w); }
@@ -950,7 +951,7 @@ function renderList() {
   $('jumpBack').hidden = !S.back; if (S.back) $('jumpBack').textContent = '‹ ' + S.back.label;
   $('viewTitle').textContent = navLabel(S.nav);
   $('viewCount').textContent = currentList.length.toLocaleString();
-  const activeCount = [S.actor, S.circle, S.tag, S.rating, S.wt, S.blMode ? S.aud : '', S.store].filter((v) => v !== '' && v != null).length;
+  const activeCount = [S.actor, S.circle, S.tag, S.rating, S.wt, S.fmt, S.blMode ? S.aud : '', S.store].filter((v) => v !== '' && v != null).length;
   const active = !!S.q || activeCount > 0;
   $('resetFilters').hidden = !active;
   $('filterBtn').textContent = activeCount ? `${L("필터")} ${activeCount}` : L('필터');
@@ -958,7 +959,7 @@ function renderList() {
   const optN = activeCount;
   $('viewOptBadge').hidden = !optN; $('viewOptBadge').textContent = optN || '';
   $('viewOptBtn').classList.toggle('on', optN > 0);
-  for (const [id, v] of [['fActor', S.actor], ['fCircle', S.circle], ['fTag', S.tag], ['fRating', S.rating], ['fWorkType', S.wt]]) $(id).classList.toggle('on', v !== '');
+  for (const [id, v] of [['fActor', S.actor], ['fCircle', S.circle], ['fTag', S.tag], ['fRating', S.rating], ['fWorkType', S.wt], ['fFormat', S.fmt]]) $(id).classList.toggle('on', v !== '');
   const list = $('list');
   list.className = 'list' + (S.view === 'grid' ? ' grid' : ' mode-' + S.listMode);
   if (!currentList.length) {
@@ -1043,12 +1044,13 @@ $('list').addEventListener('keydown', (e) => {
 
 let searchTimer;
 $('search').addEventListener('input', (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { S.q = e.target.value; S.shown = 60; renderList(); }, 150); });
-for (const [id, key] of [['fActor', 'actor'], ['fCircle', 'circle'], ['fTag', 'tag'], ['fRating', 'rating'], ['fWorkType', 'wt'], ['fSort', 'sort']]) {
+for (const [id, key] of [['fActor', 'actor'], ['fCircle', 'circle'], ['fTag', 'tag'], ['fRating', 'rating'], ['fWorkType', 'wt'], ['fFormat', 'fmt'], ['fSort', 'sort']]) {
   $(id).addEventListener('change', (e) => { S[key] = e.target.value; S.shown = 60; renderList(); });
 }
 function resetFilters() {
-  Object.assign(S, { q: '', actor: '', circle: '', tag: '', rating: '', wt: '', aud: '', store: '', shown: 60 });
+  Object.assign(S, { q: '', actor: '', circle: '', tag: '', rating: '', wt: '', fmt: '', aud: '', store: '', shown: 60 });
   $('fWorkType').value = '';
+  $('fFormat').value = '';
   $('search').value = '';
   fillFilterOptions();
   $('fRating').value = '';
@@ -1065,6 +1067,7 @@ function openViewSheet() {
     <div class="m-body view-sheet">
       <div class="opt-sec"><div class="opt-label">${L("정렬")}</div><div class="opt-sort"></div></div>
       <div class="opt-sec"><div class="opt-label">${L("구분")}</div><div class="seg opt-wt">${[['', L('전체')], ['동인', L('동인')], ['상업', L('상업')]].map(([v, l]) => `<button type="button" data-wt="${v}" class="${S.wt === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+      <div class="opt-sec"><div class="opt-label">${L("형태")}</div><div class="seg opt-fmt">${[['', L('전체')], ['download', L('다운로드')], ['cd', L('CD')]].map(([v, l]) => `<button type="button" data-fmt="${v}" class="${(S.fmt || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
       ${S.blMode ? `<div class="opt-sec"><div class="opt-label">${L("장르 구분")}</div><div class="seg opt-aud">${[['', L('전체')], ...AUDS()].map(([v, l]) => `<button type="button" data-aud="${v}" class="${(S.aud || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>` : ''}
       <div class="opt-sec"><div class="opt-label">${L("필터")}</div><div class="filter-body"></div></div>
       <div class="opt-sec"><button type="button" class="ghost-btn opt-select" id="sheetSelect">${L('여러 개 선택해서 지우기, 숨기기')}</button></div>
@@ -1077,8 +1080,9 @@ function openViewSheet() {
   dlg.querySelectorAll('[data-close]').forEach((b) => (b.onclick = () => dlg.close()));
   dlg.querySelector('.opt-wt').onclick = (e) => { const b = e.target.closest('[data-wt]'); if (!b) return; S.wt = b.dataset.wt; $('fWorkType').value = S.wt; S.shown = 60; renderList(); dlg.querySelectorAll('.opt-wt button').forEach((x) => x.classList.toggle('on', x === b)); };
   dlg.querySelector('.opt-aud') && (dlg.querySelector('.opt-aud').onclick = (e) => { const b = e.target.closest('[data-aud]'); if (!b) return; S.aud = b.dataset.aud; S.shown = 60; renderList(); dlg.querySelectorAll('.opt-aud button').forEach((x) => x.classList.toggle('on', x === b)); });
+  dlg.querySelector('.opt-fmt').onclick = (e) => { const b = e.target.closest('[data-fmt]'); if (!b) return; S.fmt = b.dataset.fmt; $('fFormat').value = S.fmt; S.shown = 60; renderList(); dlg.querySelectorAll('.opt-fmt button').forEach((x) => x.classList.toggle('on', x === b)); };
   $('sheetSelect').onclick = () => { dlg.close(); startSelect(); };
-  $('sheetReset').onclick = () => { resetFilters(); dlg.querySelectorAll('.opt-wt button').forEach((x) => x.classList.toggle('on', x.dataset.wt === '')); dlg.querySelectorAll('.opt-aud button').forEach((x) => x.classList.toggle('on', x.dataset.aud === '')); };
+  $('sheetReset').onclick = () => { resetFilters(); dlg.querySelectorAll('.opt-wt button').forEach((x) => x.classList.toggle('on', x.dataset.wt === '')); dlg.querySelectorAll('.opt-fmt button').forEach((x) => x.classList.toggle('on', x.dataset.fmt === '')); dlg.querySelectorAll('.opt-aud button').forEach((x) => x.classList.toggle('on', x.dataset.aud === '')); };
   dlg.onclose = () => { for (const [el, parent, next] of moved.reverse()) parent.insertBefore(el, next && next.parentNode === parent ? next : null); };
   dlg.showModal();
 }
@@ -1390,14 +1394,18 @@ function openOrder(id) {
   const st = {
     date: first.purchaseDate || today(), store: first.store || '', cur: first.currency || 'JPY',
     type: first.orderType || (orderId ? '' : 'bundle'), value: first.orderValue ?? '', memo: orderId ? first.couponMemo || '' : '',
-    total: first.orderTotal ?? '', manual: orderId ? !!first.paidManual : false, q: '',
+    total: first.orderTotal ?? '', manual: orderId ? !!first.paidManual : false, q: '', ship: orderId ? first.orderShipping ?? '' : first.shipping ?? '',
   };
+  const hasCd = () => members.some((m) => S.works.find((w) => w.id === m.id)?.format === 'cd');
+  const shipNow = () => (hasCd() ? numOf(st.ship) : null);
   const dlg = document.createElement('dialog');
   dlg.className = 'modal order-dlg';
   document.body.appendChild(dlg);
   const auto = () => {
     const sum = members.reduce((a, m) => a + (numOf(m.sale) ?? numOf(m.list) ?? 0), 0);
-    return st.type === 'bundle' ? numOf(st.value) : applyCoupon(sum, st.type, st.value, st.cur);
+    const goods = st.type === 'bundle' ? numOf(st.value) : applyCoupon(sum, st.type, st.value, st.cur);
+    const ship = shipNow();
+    return goods != null && ship ? Math.round((goods + ship) * 100) / 100 : goods;
   };
   const totalNow = () => (st.manual ? numOf(st.total) : auto());
   const render = () => {
@@ -1419,8 +1427,9 @@ function openOrder(id) {
           ${found.map((w) => `<button type="button" class="od-found" data-add="${esc(w.id)}">+ ${esc(displayTitle(w))}${w.orderId ? ` <small>(${L('다른 묶음')})</small>` : ''}</button>`).join('')}</div>
         <div class="field">${L('할인 방식')}<div class="seg od-seg">${[['', L('없음')], ['pct', L('% 쿠폰')], ['yen', L('금액 쿠폰')], ['bundle', L('묶음가')]].map(([v, l]) => `<button type="button" data-ot="${v}" class="${st.type === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
         ${st.type ? `<div class="grid2"><label class="field">${st.type === 'pct' ? L('할인율 (%)') : st.type === 'yen' ? L('쿠폰 금액') : L('묶음 가격')}<input id="odValue" inputmode="decimal" value="${esc(st.value)}" placeholder="${st.type === 'pct' ? '30' : st.type === 'yen' ? '200' : '999'}"></label><label class="field">${L('메모')}<input id="odMemo" value="${esc(st.memo)}" placeholder="${L('3개 999엔 이벤트')}"></label></div>` : ''}
+        ${hasCd() ? `<label class="field">${L('배송비, 수수료')}<input id="odShip" inputmode="decimal" value="${esc(st.ship)}" placeholder="${L('배송비, 대행 수수료, 관부가세')}"></label>` : ''}
         <div class="field">${L('최종 구매금 (결제 금액)')}<div class="final-row"><input id="odTotal" inputmode="decimal" value="${total ?? ''}"><span class="final-mode">${st.manual ? `${L('직접 입력')} / <button type="button" class="link-btn" id="odAuto">${L('자동 계산으로')}</button>` : L('자동 계산')}</span></div></div>
-        <div class="calc-line">${L('정가 합계')} ${money(listSum, st.cur)} → <strong>${money(total ?? 0, st.cur)}</strong>${listSum > (total ?? 0) ? ` <span class="buy-off">(${money(listSum - (total ?? 0), st.cur)} ${L('아낌')})</span>` : ''}<br><span class="muted">${L('작품마다 똑같이 나눠요. 끝전은 앞 작품부터 더해요.')}</span></div>
+        <div class="calc-line">${L('정가 합계')} ${money(listSum, st.cur)} → <strong>${money(total ?? 0, st.cur)}</strong>${shipNow() ? ` <small>(${L('배송비')} ${money(shipNow(), st.cur)} ${L('포함')})</small>` : ''}${total != null && listSum > total - (shipNow() || 0) ? ` <span class="buy-off">(${money(listSum - (total ?? 0) + (shipNow() || 0), st.cur)} ${L('아낌')})</span>` : ''}<br><span class="muted">${L('작품마다 똑같이 나눠요. 끝전은 앞 작품부터 더해요.')}</span></div>
       </div>
       <div class="m-foot">${orderId ? `<button type="button" class="link-btn danger-link" id="odBreak">${L('묶음 풀기')}</button>` : ''}<span class="spacer"></span><button type="button" class="primary-btn" id="odSave">${L('저장')}</button></div></div>`;
   };
@@ -1428,6 +1437,7 @@ function openOrder(id) {
     st.date = $('odDate')?.value || st.date; st.store = $('odStore')?.value.trim() ?? st.store;
     if ($('odValue')) st.value = $('odValue').value.trim();
     if ($('odMemo')) st.memo = $('odMemo').value.trim();
+    if ($('odShip')) st.ship = $('odShip').value.trim();
     dlg.querySelectorAll('.od-list-price').forEach((x) => { members[Number(x.dataset.i)].list = x.value.trim(); });
   };
   const rerender = (focusId) => { const pos = dlg.querySelector('.m-body')?.scrollTop || 0; const sel = document.activeElement?.id === focusId ? document.activeElement.selectionStart : null; render(); dlg.querySelector('.m-body').scrollTop = pos; if (focusId && $(focusId)) { $(focusId).focus(); if (sel != null) try { $(focusId).setSelectionRange(sel, sel); } catch {} } };
@@ -1446,6 +1456,7 @@ function openOrder(id) {
     const id = e.target.id;
     if (id === 'odSearch') { st.q = e.target.value; return rerender('odSearch'); }
     if (id === 'odTotal') { st.manual = true; st.total = e.target.value; const sh = dlg.querySelectorAll('.od-share'); const tot = numOf(st.total); const parts = tot != null ? splitTotal(tot, members.length, st.cur) : []; sh.forEach((x, i) => { x.textContent = parts[i] != null ? money(parts[i], st.cur) : '–'; }); dlg.querySelector('.final-mode').innerHTML = `${L('직접 입력')} / <button type="button" class="link-btn" id="odAuto">${L('자동 계산으로')}</button>`; return; }
+    if (id === 'odShip') { readInputs(); return rerender('odShip'); }
     if (id === 'odValue' || e.target.classList.contains('od-list-price')) { readInputs(); if (!st.manual) { const t = auto(); $('odTotal').value = t ?? ''; const parts = t != null ? splitTotal(t, members.length, st.cur) : []; dlg.querySelectorAll('.od-share').forEach((x, i) => { x.textContent = parts[i] != null ? money(parts[i], st.cur) : '–'; }); } }
   });
   async function saveOrder() {
@@ -1455,12 +1466,14 @@ function openOrder(id) {
     if (total == null) return toast(L('최종 구매금을 넣어 주세요.'), true);
     const oid = orderId || 'o-' + (crypto.randomUUID?.() || Date.now().toString(36));
     const shares = splitTotal(total, members.length, st.cur);
-    const common = { orderId: oid, orderType: st.type, orderValue: st.type ? numOf(st.value) : null, orderTotal: total, orderCount: members.length, couponMemo: st.memo, purchaseDate: st.date, store: st.store, currency: st.cur === 'JPY' ? '' : st.cur, couponType: '', couponValue: null, paidManual: st.manual };
+    const ship = shipNow();
+    const shipShares = ship ? splitTotal(ship, members.length, st.cur) : [];
+    const common = { orderId: oid, orderShipping: ship || null, orderType: st.type, orderValue: st.type ? numOf(st.value) : null, orderTotal: total, orderCount: members.length, couponMemo: st.memo, purchaseDate: st.date, store: st.store, currency: st.cur === 'JPY' ? '' : st.cur, couponType: '', couponValue: null, paidManual: st.manual };
     common.discountNote = discountNote({ ...common, currency: st.cur });
     $('odSave').disabled = true;
     try {
-      for (let i = 0; i < members.length; i++) await api('api/works/' + encodeURIComponent(members[i].id), { method: 'PATCH', body: { ...common, listPrice: members[i].list, paidPrice: shares[i] } });
-      for (const w of before) if (!members.some((m) => m.id === w.id)) await api('api/works/' + encodeURIComponent(w.id), { method: 'PATCH', body: { orderId: '', orderType: '', orderValue: null, orderTotal: null, orderCount: 0, discountNote: '' } });
+      for (let i = 0; i < members.length; i++) await api('api/works/' + encodeURIComponent(members[i].id), { method: 'PATCH', body: { ...common, listPrice: members[i].list, paidPrice: shares[i], shipping: shipShares[i] ?? null } });
+      for (const w of before) if (!members.some((m) => m.id === w.id)) await api('api/works/' + encodeURIComponent(w.id), { method: 'PATCH', body: { orderId: '', orderType: '', orderValue: null, orderTotal: null, orderCount: 0, orderShipping: null, discountNote: '' } });
       await load();
       dlg.close();
       toast(L('묶음 {n}개를 저장했어요.', { n: members.length }));
@@ -1482,9 +1495,11 @@ function openOrder(id) {
 function purchaseHtml(w) {
   const paid = w.paidPrice ?? w.listPrice;
   if (!w.purchaseDate && !w.store && paid == null) return `<div class="buy-line empty"><button type="button" class="link-btn" data-act="edit">${L("+ 구매 정보 넣기")}</button></div>`;
-  const off = w.listPrice && w.paidPrice != null && w.paidPrice < w.listPrice ? Math.round((1 - w.paidPrice / w.listPrice) * 100) : 0;
+  const ship = w.shipping || 0;
+  const goods = w.paidPrice != null ? w.paidPrice - ship : null; // 배송비를 뺀 작품값으로 할인율을 봐요
+  const off = w.listPrice && goods != null && goods < w.listPrice ? Math.round((1 - goods / w.listPrice) * 100) : 0;
   const cur = w.currency;
-  const strike = w.listPrice != null && paid != null && paid < w.listPrice ? `<s class="buy-strike">${esc(money(w.listPrice, cur))}</s>` : '';
+  const strike = w.listPrice != null && goods != null && goods < w.listPrice ? `<s class="buy-strike">${esc(money(w.listPrice, cur))}</s>` : '';
   const tag = (w.orderId
     ? `<button type="button" class="chip chip-order" data-act="order">${L('묶음')} ${w.orderCount || ''}${L('개')} ${esc(money(w.orderTotal, cur))}</button>` : '')
     + (w.orderId && !w.orderNo ? '' : [w.salePrice != null && w.salePrice !== w.listPrice ? `<span class="chip chip-sale">${L('할인가')} ${esc(money(w.salePrice, cur))}</span>` : '', w.couponType && w.couponValue ? `<span class="chip chip-cp">${w.couponType === 'pct' ? `${w.couponValue}% ${L('쿠폰')}` : `${esc(money(w.couponValue, cur))} ${L('쿠폰')}`}</span>` : ''].join(''));
@@ -1494,7 +1509,9 @@ function purchaseHtml(w) {
     ${strike}${strike ? '<span class="buy-arrow">→</span>' : ''}${paid != null ? `<strong>${esc(money(paid, cur))}</strong>` : ''}
     ${tag}
     ${off ? `<span class="buy-off">${off}${L("% 할인")}</span>` : ''}
-    ${w.couponMemo ? `<span class="buy-memo">${esc(w.couponMemo)}</span>` : ''}</div>${extraBuysHtml(w)}`;
+    ${w.couponMemo ? `<span class="buy-memo">${esc(w.couponMemo)}</span>` : ''}
+    ${w.format === 'cd' ? `<span class="chip chip-cd">CD</span>` : ''}${ship ? `<span class="buy-memo">${L('배송비')} ${esc(money(ship, cur))} ${L('포함')}</span>` : ''}
+    ${w.bonus ? `<span class="buy-memo">${L('특전')}: ${esc(w.bonus)}</span>` : ''}</div>${extraBuysHtml(w)}`;
 }
 // 같은 작품을 다른 곳에서 또 산 기록 (영수증 가져오기 → '같은 작품의 추가 구매')
 function extraBuysHtml(w) {
@@ -1537,12 +1554,13 @@ $('detail').addEventListener('click', async (e) => {
   }
   if (t.dataset.filter) {
     // 돌아올 수 있게 지금 목록 상태를 기억해 둬요. 폰은 작품 화면으로, PC는 이전 목록으로 돌아가요.
-    const snap = { nav: S.nav, q: S.q, actor: S.actor, circle: S.circle, tag: S.tag, rating: S.rating, wt: S.wt, aud: S.aud, store: S.store, y: $('main').scrollTop };
+    const snap = { nav: S.nav, q: S.q, actor: S.actor, circle: S.circle, tag: S.tag, rating: S.rating, wt: S.wt, fmt: S.fmt, aud: S.aud, store: S.store, y: $('main').scrollTop };
     const wid = w.id, narrow = isNarrow();
     const restore = () => {
       const { y, ...st } = snap;
       Object.assign(S, st, { shown: 60 });
       $('fWorkType').value = S.wt || '';
+      $('fFormat').value = S.fmt || '';
       fillFilterOptions(); renderNav(); renderList();
       requestAnimationFrame(() => { $('main').scrollTop = y; });
       if (narrow && S.works.some((x) => x.id === wid)) select(wid);
@@ -1709,6 +1727,10 @@ function openEditor(work) {
           ${S.blMode ? `<div class="field">${L("장르 구분")}<div class="seg wt-seg" id="edAudience" role="radiogroup" aria-label="${L("장르 구분")}">${AUDS().map(([v, l]) => `<button type="button" data-aud="${v}" class="${audienceOf(ED) === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>` : ''}
         </div>
         <div class="grid2">
+          <div class="field">${L("형태")}<div class="seg wt-seg" id="edFormat" role="radiogroup" aria-label="${L("형태")}">${[['', L('다운로드')], ['cd', L('CD')]].map(([v, l]) => `<button type="button" data-fmt="${v}" class="${(ED.format || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+          <label class="field ed-cd"${ED.format === 'cd' ? '' : ' hidden'}>${L("특전")}<input id="edBonus" value="${esc(ED.bonus || '')}" placeholder="${L("매장 특전 메모")}"></label>
+        </div>
+        <div class="grid2">
           <label class="field">${L("구매일")}<input id="edBuyDate" type="date" value="${esc(ED.purchaseDate || '')}"></label>
           <label class="field">${L("통화")}<select id="edCurrency">${[['JPY', L('¥ 엔')], ['KRW', L('₩ 원')], ['USD', L('$ 달러')]].map(([v, l]) => `<option value="${v}"${(ED.currency || 'JPY') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
         </div>
@@ -1724,11 +1746,12 @@ function openEditor(work) {
             <label class="field">${L("메모")}<input id="edCouponMemo" value="${esc(ED.couponMemo || '')}" placeholder="${L("가을 쿠폰")}"></label>
           </div>
           </details>
+          <label class="field ed-cd"${ED.format === 'cd' ? '' : ' hidden'}>${L("배송비, 수수료")}<input id="edShipping" inputmode="decimal" value="${ED.shipping ?? ''}" placeholder="${L("배송비, 대행 수수료, 관부가세")}"></label>
           <div class="field">${L("최종 구매금")}<div class="final-row"><input id="edPaidPrice" inputmode="decimal" value="${ED.paidPrice ?? ''}" placeholder="${L("비우면 정가")}"><span class="final-mode" id="edPaidMode"></span></div></div>
           <div class="calc-line" id="edCalc"></div>
         </div>
         <div class="order-box" id="edOrderBox">${ED.orderId
-          ? `<div class="order-sum"><span>${L('묶음 구매')} ${ED.orderCount || ''}${L('개')} / <strong>${esc(money(ED.orderTotal, ED.currency))}</strong> / ${L('이 작품')} ${esc(money(ED.paidPrice, ED.currency))}</span><button type="button" class="ghost-btn" id="edOrder">${L('묶음 고치기')}</button></div>`
+          ? `<div class="order-sum"><span>${L('묶음 구매')} ${ED.orderCount || ''}${L('개')} / <strong>${esc(money(ED.orderTotal, ED.currency))}</strong> / ${L('이 작품')} ${esc(money(ED.paidPrice, ED.currency))}${ED.orderShipping ? ` / ${L('배송비')} ${esc(money(ED.orderShipping, ED.currency))}` : ''}</span><button type="button" class="ghost-btn" id="edOrder">${L('묶음 고치기')}</button></div>`
           : `<button type="button" class="link-btn" id="edOrder">${L('+ 같이 산 작품 묶기 (묶음, 세트 할인)')}</button>`}</div>
         <div class="sec-label" style="margin-top:6px">${L("이미지")}</div>
         <div class="note" id="edImgHint">${L('끌어서 순서를 바꿔요. 첫 번째가 대표 이미지예요.')}</div>
@@ -1791,7 +1814,9 @@ function readEdForm() {
     ED.couponValue = ED.couponType ? $('edCouponValue').value.trim() : '';
     ED.couponMemo = ED.couponType ? $('edCouponMemo').value.trim() : '';
     ED.paidPrice = $('edPaidPrice').value.trim();
+    ED.shipping = ED.format === 'cd' ? $('edShipping').value.trim() : null;
   }
+  ED.bonus = ED.format === 'cd' ? $('edBonus').value.trim() : '';
   ED.currency = $('edCurrency').value === 'JPY' ? '' : $('edCurrency').value; // 엔화는 비워 둬요(기본값)
   if (!ED.orderId) ED.discountNote = discountNote(ED);
   else if (ED.orderNo && ED.discountNote) ED.discountNote = ED.discountNote.replace(/^할인가 [^·]+/, `할인가 ${money(numOf(ED.salePrice), ED.currency || 'JPY')}`);
@@ -1877,7 +1902,9 @@ function recalcPrice() {
   const list = numOf($('edListPrice').value), sale = numOf($('edSalePrice').value);
   const base = sale ?? list;
   const auto = applyCoupon(base, ED.couponType, ED.couponType ? $('edCouponValue').value : '', cur);
-  if (!ED.paidManual) $('edPaidPrice').value = auto == null || (!ED.couponType && sale == null) ? (sale ?? '') : auto;
+  const ship = ED.format === 'cd' ? numOf($('edShipping').value) : null;
+  const goods = auto == null || (!ED.couponType && sale == null) ? sale : auto;
+  if (!ED.paidManual) $('edPaidPrice').value = ship ? ((goods ?? list) != null ? Math.round(((goods ?? list) + ship) * 100) / 100 : '') : (goods ?? '');
   const paid = numOf($('edPaidPrice').value) ?? list;
   $('edPaidMode').innerHTML = ED.paidManual
     ? `${L('직접 입력')} / <button type="button" class="link-btn" id="edPaidAuto">${L('자동 계산으로')}</button>`
@@ -1887,8 +1914,9 @@ function recalcPrice() {
   if (sale != null) steps.push(`${L('할인가')} ${money(sale, cur)}`);
   const cpv = numOf($('edCouponValue')?.value);
   const cpText = ED.couponType && cpv ? (ED.couponType === 'pct' ? ` − ${cpv}% ${L('쿠폰')}` : ` − ${money(cpv, cur)} ${L('쿠폰')}`) : '';
-  const saved = list != null && paid != null ? list - paid : 0;
-  $('edCalc').innerHTML = paid != null && (steps.length > 1 || cpText) || ED.paidManual ? `${steps.join(' → ')}${cpText} = <strong>${money(paid, cur)}</strong>${saved > 0 ? ` <span class="buy-off">(${money(saved, cur)} ${L('아낌')})</span>` : ''}` : '';
+  const shipText = ship ? ` + ${money(ship, cur)} ${L('배송비')}` : '';
+  const saved = list != null && paid != null ? list - (paid - (ship || 0)) : 0;
+  $('edCalc').innerHTML = paid != null && (steps.length > 1 || cpText || shipText) || ED.paidManual ? `${steps.join(' → ')}${cpText}${shipText} = <strong>${money(paid, cur)}</strong>${saved > 0 ? ` <span class="buy-off">(${money(saved, cur)} ${L('아낌')})</span>` : ''}` : '';
 }
 function renderEdTags() {
   const box = $('edTags');
@@ -1985,6 +2013,15 @@ function bindEditor() {
     openOrder(id);
   };
   recalcPrice();
+  $('edFormat').onclick = (e) => {
+    const b = e.target.closest('[data-fmt]'); if (!b) return;
+    ED.format = b.dataset.fmt;
+    document.querySelectorAll('#edFormat [data-fmt]').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('#editor .ed-cd').forEach((x) => { x.hidden = ED.format !== 'cd'; });
+    if (ED.format !== 'cd' && $('edShipping')) $('edShipping').value = '';
+    recalcPrice();
+  };
+  $('edShipping')?.addEventListener('input', () => recalcPrice());
   $('edWorkType').onclick = (e) => { const b = e.target.closest('[data-wt]'); if (b) setEdWorkType(ED.workType === b.dataset.wt ? '' : b.dataset.wt); };
   $('edAudience') && ($('edAudience').onclick = (e) => { const b = e.target.closest('[data-aud]'); if (!b) return; ED.audience = b.dataset.aud; document.querySelectorAll('#edAudience [data-aud]').forEach((x) => x.classList.toggle('on', x === b)); });
   const dlg = $('editor');
@@ -2112,7 +2149,7 @@ function bindEditor() {
     readEdForm();
     if (!ED.title && !ED.titleKo) { $('edTitle').focus(); return toast(L('작품명을 입력해 주세요.'), true); }
     if (ED.isNew && !ED.workType) ED.workType = guessWorkType(ED);
-    const body = { noStats: !!ED.noStats, audience: ED.audience || '', workType: ED.workType || '', url: ED.url, titleKo: ED.titleKo, title: ED.title, actor: ED.actor, circle: ED.circle, date: ED.date, code: ED.code, tags: ED.tags, images: ED.images, promo: ED.promo, translation: ED.translation, folder: ED.folder, hidden: ED.hidden, organize: ED.organize, purchaseDate: ED.purchaseDate, store: ED.store, listPrice: ED.listPrice, paidPrice: ED.paidPrice, currency: ED.currency, salePrice: ED.salePrice, couponType: ED.couponType || '', couponValue: ED.couponValue, couponMemo: ED.couponMemo || '', paidManual: !!ED.paidManual, discountNote: ED.discountNote || '' };
+    const body = { noStats: !!ED.noStats, audience: ED.audience || '', workType: ED.workType || '', url: ED.url, titleKo: ED.titleKo, title: ED.title, actor: ED.actor, circle: ED.circle, date: ED.date, code: ED.code, tags: ED.tags, images: ED.images, promo: ED.promo, translation: ED.translation, folder: ED.folder, hidden: ED.hidden, organize: ED.organize, purchaseDate: ED.purchaseDate, store: ED.store, listPrice: ED.listPrice, paidPrice: ED.paidPrice, currency: ED.currency, salePrice: ED.salePrice, couponType: ED.couponType || '', couponValue: ED.couponValue, couponMemo: ED.couponMemo || '', paidManual: !!ED.paidManual, discountNote: ED.discountNote || '', format: ED.format || '', bonus: ED.bonus || '', ...(ED.orderId && !ED.orderNo ? {} : { shipping: ED.shipping ?? null }) };
     const pushAfter = $('edPush')?.checked;
     $('edSave').disabled = true;
     try {
@@ -3504,6 +3541,7 @@ const STAT_KINDS = [
   ['status', L('청취 상태'), (w) => [{ '미청취': L('안 들음'), '청취 중': L('듣는 중'), '청취 완료': L('들음') }[w.status] || L('상태 미기재')]],
   ['store', L('구매처별'), (w) => (w.store ? [w.store] : [])],
   ['workType', L('동인 / 상업'), (w) => [w.workType ? L(w.workType) : L('미분류')]],
+  ['format', L('다운로드 / CD'), (w) => [w.format === 'cd' ? 'CD' : L('다운로드')]],
   ['audience', L('장르 구분'), (w) => [audLabel(audienceOf(w))]],
   ['spend', L('지출'), null],
 ];
@@ -3656,7 +3694,7 @@ function renderSpend() {
   const cur = S.spendCur;
   const pad = (n) => String(n).padStart(2, '0');
   const paidOf = (w) => w.paidPrice ?? w.listPrice;
-  const savedOf = (w) => (w.listPrice != null && w.paidPrice != null ? Math.max(0, w.listPrice - w.paidPrice) : 0);
+  const savedOf = (w) => (w.listPrice != null && w.paidPrice != null ? Math.max(0, w.listPrice - (w.paidPrice - (w.shipping || 0))) : 0);
   const inCur = bought.filter((w) => (w.currency || 'JPY') === cur);
   const thisYear = String(new Date().getFullYear());
   const years = [...new Set([...inCur.map((w) => w.purchaseDate.slice(0, 4)), thisYear])].sort();
@@ -3672,6 +3710,8 @@ function renderSpend() {
   const saved = scope.reduce((a, w) => a + savedOf(w), 0);
   const chargeSum = charges.filter((w) => yearView || w.purchaseDate.startsWith(S.spendYear)).reduce((a, w) => a + (w.paidPrice || 0), 0);
   const activeMonths = new Set(scope.map((w) => w.purchaseDate.slice(0, 7))).size;
+  const shipSum = scope.reduce((a, w) => a + (w.shipping || 0), 0);
+  const cdCount = scope.filter((w) => w.format === 'cd').length;
   const max = Math.max(1, ...[...groups.values()].map((r) => r.sum));
   const stores = new Map();
   for (const w of scope) { const k = w.store || L('구매처 미기재'); const r = stores.get(k) || { sum: 0, n: 0 }; r.sum += paidOf(w); r.n++; stores.set(k, r); }
@@ -3691,6 +3731,7 @@ function renderSpend() {
       ${S.blMode ? `<div class="tabs" role="radiogroup" aria-label="${L('장르 구분')}">${[['', L('전체')], ...AUDS()].map(([v, l]) => `<button type="button" data-spend-aud="${v}" class="${(S.spendAud || '') === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}
       <button type="button" class="ghost-btn" id="rcOpen">${L('영수증 메일 가져오기')}</button>
       ${otherBuys.length ? `<label class="check"><input type="checkbox" id="spendOthers"${S.spendOthers ? ' checked' : ''}>${L('기타 구매(만화 등) 포함')} <small class="muted">${otherBuys.length}${L('개')}</small></label>` : ''}
+      ${cdCount || shipSum ? `<span class="note">CD ${cdCount}${L('개')}${shipSum ? ` / ${L('배송비, 수수료')} ${money(shipSum, cur)} <small>(${L('지출에 포함')})</small>` : ''}</span>` : ''}
       ${chargeSum ? `<span class="note">${L('포인트 충전')} ${money(chargeSum, 'JPY')} <small>(${L('지출에는 안 들어가요')})</small></span>` : ''}
     </div>
     <div class="stat-cards">
@@ -3807,6 +3848,7 @@ $('stats').addEventListener('click', (e) => {
   if (S.statKind === 'store') S.store = key;
   if (S.statKind === 'audience') S.aud = (AUDS().find(([, l]) => l === key) || ['women'])[0];
   if (S.statKind === 'workType') { S.wt = key === L('동인') ? '동인' : key === L('상업') ? '상업' : ''; $('fWorkType').value = S.wt; }
+  if (S.statKind === 'format') { S.fmt = key === 'CD' ? 'cd' : 'download'; $('fFormat').value = S.fmt; }
   if (S.statKind === 'status') S.nav = { [L('들음')]: 'played', [L('듣는 중')]: 'played', [L('안 들음')]: 'unplayed', [L('상태 미기재')]: 'unplayed' }[key];
   fillFilterOptions();
   renderNav();

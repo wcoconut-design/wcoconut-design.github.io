@@ -118,6 +118,10 @@ export function normalizeWork(w = {}) {
     paidPrice: money(w.paidPrice),
     currency: CURRENCIES.includes(str(w.currency).toUpperCase()) ? str(w.currency).toUpperCase() : '',
     workType: WORK_TYPES.includes(str(w.workType)) ? str(w.workType) : '',
+    // 형태: '' = 다운로드(기본), 'cd' = 실물 CD. CD면 배송비·수수료와 특전 메모를 적어요. (노션에는 안 보내요)
+    format: str(w.format) === 'cd' ? 'cd' : '',
+    shipping: money(w.shipping), // 배송비·대행 수수료·관부가세 (최종 구매금 paidPrice에 들어가 있어요)
+    bonus: str(w.bonus), // 특전 메모
     // 할인·쿠폰·묶음 구매 (최종 구매금 = paidPrice, 직접 고치면 paidManual)
     salePrice: money(w.salePrice),
     couponType: ['pct', 'yen'].includes(str(w.couponType)) ? str(w.couponType) : '',
@@ -130,6 +134,7 @@ export function normalizeWork(w = {}) {
     orderValue: money(w.orderValue),
     orderTotal: money(w.orderTotal), // 묶음 전체 최종 구매금
     orderCount: Math.max(0, Math.round(Number(w.orderCount) || 0)),
+    orderShipping: money(w.orderShipping), // 묶음 전체 배송비 (작품마다 나눠 shipping에 들어가요)
     orderNo: str(w.orderNo), // 영수증 주문번호 (같은 주문을 두 번 넣지 않게)
     pointsUsed: money(w.pointsUsed),
     // 작품이 아닌 기록: 'other' = 만화 등 기타 구매, 'points' = 포인트 충전. 목록·통계·노션에는 안 나와요.

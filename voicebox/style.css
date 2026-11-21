@@ -520,7 +520,7 @@ button.chip:hover { background: var(--line); }
 
 /* 좁은 목록: 필터를 버튼 하나로 */
 .filter-btn { display: none; }
-.main.compact-filters #fActor, .main.compact-filters #fCircle, .main.compact-filters #fTag, .main.compact-filters #fRating, .main.compact-filters #fWorkType { display: none; }
+.main.compact-filters #fActor, .main.compact-filters #fCircle, .main.compact-filters #fTag, .main.compact-filters #fRating, .main.compact-filters #fWorkType, .main.compact-filters #fFormat { display: none; }
 .main.compact-filters .filter-btn { display: inline-flex; }
 .main.compact-filters #fSort { margin-left: 0; }
 .filter-body { gap: 10px; }
@@ -983,7 +983,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 .main.stats-mode .hd-tools { display: none; }
 .sdot { margin-right: 10px; white-space: nowrap; display: inline-block; }
 .filters select { max-width: 170px; }
-.filters #fWorkType { max-width: 130px; }
+.filters #fWorkType, .filters #fFormat { max-width: 130px; }
 /* 안내창: 폰에서 끝까지 스크롤되게 */
 .srv-guide .m-body { overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; flex: 1 1 auto; }
 .srv-guide .m-body > * { flex: none; }
@@ -1280,3 +1280,7 @@ body.home-mode .main-head { display: none; }
 /* 앱 이름: 작은 pocket + VOICE BOX */
 .brand-txt { display: inline-flex; flex-direction: column; line-height: 1.05; }
 .brand-txt small { font-size: 10px; font-weight: 600; letter-spacing: .06em; color: var(--accent); text-transform: lowercase; }
+
+/* 실물 CD 표시 */
+.tag-cd { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; line-height: 1.45; }
+.chip-cd { color: var(--accent); border-color: currentColor; font-weight: 700; }
