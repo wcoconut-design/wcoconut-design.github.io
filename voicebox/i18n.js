@@ -767,4 +767,5 @@ window.VB_I18N = {
   '다운로드 / CD': ['Download / CD', 'ダウンロード / CD'],
   '지출에 포함': ['included in spending', '支出に含む'],
   '형태 전체': ['All formats', '形態：すべて'],
+  '유형별': ['By type', 'タイプ別'],
 };

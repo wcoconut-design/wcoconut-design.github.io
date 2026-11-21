@@ -139,7 +139,7 @@ window.VB_GUIDE = {
       id: 'stats', title: '통계',
       parts: [
         { h: '작품 통계와 지출', steps: [
-          '**작품**: 성우, 서클, 장르, 연도별로 봐요.',
+          '**작품**: 성우, 서클, 장르, 연도별로 봐요. **유형별**에서는 동인/상업, 다운로드/CD를 골라 봐요.',
           '**지출**: 월별, 연도별 지출과 아낀 돈을 봐요.',
           '항목이나 줄을 누르면 그 작품 목록이 나와요. 목록 위 **‹ 통계**로 돌아와요.',
         ], tips: ['지출은 음성 작품만 더해요. 만화 등은 **기타 구매 포함**을 켜요.'] },
@@ -321,7 +321,7 @@ window.VB_GUIDE = {
       id: 'stats', title: 'Stats',
       parts: [
         { h: 'Work stats and spending', steps: [
-          '**Works**: by actor, circle, genre and year.',
+          '**Works**: by actor, circle, genre and year. **By type** lets you pick doujin/commercial or download/CD.',
           '**Spending**: by month and year, with money saved.',
           'Tap an item or row to see those works. **‹ Stats** above the list takes you back.',
         ], tips: ['Spending counts voice works only. Turn on **Include other purchases** for manga etc.'] },
@@ -495,7 +495,7 @@ window.VB_GUIDE = {
       id: 'stats', title: '統計',
       parts: [
         { h: '作品の統計と支出', steps: [
-          '**作品**：声優、サークル、ジャンル、年別に見られます。',
+          '**作品**：声優、サークル、ジャンル、年別に見られます。**タイプ別**では同人/商業、ダウンロード/CDを選べます。',
           '**支出**：月別、年別の支出と節約額を見られます。',
           '項目や行を押すとその作品の一覧が出ます。一覧の上の**‹ 統計**で戻れます。',
         ], tips: ['支出は音声作品だけを合計します。マンガなどは **その他の購入を含める** をオンに。'] },

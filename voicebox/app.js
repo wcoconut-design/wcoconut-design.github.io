@@ -3545,6 +3545,8 @@ const STAT_KINDS = [
   ['audience', L('장르 구분'), (w) => [audLabel(audienceOf(w))]],
   ['spend', L('지출'), null],
 ];
+// 동인/상업 · 다운로드/CD · 장르 구분은 '유형별' 버튼 하나로 모으고, 누르면 차트 위에서 골라요.
+const TYPE_KINDS = ['workType', 'format', 'audience'];
 const STAT_SCOPES = [
   ['all', L('전체 작품'), () => true],
   ['played', L('들은 작품'), (w) => w.status === '청취 완료' || w.status === '청취 중'],
@@ -3557,6 +3559,7 @@ S.statScope = 'all';
 S.statMore = false;
 let statObserver = null;
 try { const p = JSON.parse(localStorage.getItem('voicebox.stats') || '{}'); if (p.kind) S.statKind = p.kind; if (p.scope) S.statScope = p.scope; } catch {}
+S.statType = TYPE_KINDS.includes(S.statKind) ? S.statKind : '';
 
 function statData() {
   if (S.statKind === 'audience' && !S.blMode) S.statKind = 'actor';
@@ -3650,9 +3653,10 @@ function renderStats() {
       <div class="stat-card"><div class="sc-label">${L("평균 별점")}</div><div class="sc-num">${avg}</div></div>
     </div>
     <div class="stat-tools">
-      <div class="stat-kind-grid" role="tablist">${STAT_KINDS.filter(([k]) => k !== 'spend' && (k !== 'audience' || S.blMode)).map(([k, l]) => `<button type="button" data-stat-kind="${k}" class="${S.statKind === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+      <div class="stat-kind-grid" role="tablist">${[...STAT_KINDS.filter(([k]) => k !== 'spend' && !TYPE_KINDS.includes(k)), ['type', L('유형별')]].map(([k, l]) => `<button type="button" data-stat-kind="${k}" class="${(k === 'type' ? TYPE_KINDS.includes(S.statKind) : S.statKind === k) ? 'on' : ''}">${l}</button>`).join('')}</div>
       <select id="statScope" aria-label="${L("통계 범위")}">${STAT_SCOPES.map(([k, l]) => `<option value="${k}"${S.statScope === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
     </div>
+    ${TYPE_KINDS.includes(S.statKind) ? `<div class="seg stat-sub" role="radiogroup" aria-label="${L('유형별')}">${STAT_KINDS.filter(([k]) => TYPE_KINDS.includes(k) && (k !== 'audience' || S.blMode)).map(([k, l]) => `<button type="button" data-stat-kind="${k}" class="${S.statKind === k ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}
     <div class="stat-body">
       <div class="donut-wrap">${svg}</div>
       <div class="stat-legend">
@@ -3833,7 +3837,12 @@ $('stats').addEventListener('click', (e) => {
   const on = e.target.closest('[data-open-names]');
   if (on) { openNames(on.dataset.openNames); return; }
   const kind = e.target.closest('[data-stat-kind]');
-  if (kind) { S.statKind = kind.dataset.statKind; S.statMore = false; rememberStats(); return renderStats(); }
+  if (kind) {
+    const k = kind.dataset.statKind;
+    S.statKind = k === 'type' ? (TYPE_KINDS.includes(S.statType) && (S.statType !== 'audience' || S.blMode) ? S.statType : 'workType') : k;
+    if (TYPE_KINDS.includes(S.statKind)) S.statType = S.statKind;
+    S.statMore = false; rememberStats(); return renderStats();
+  }
   const keyEl = e.target.closest('[data-stat-key]');
   if (!keyEl) return;
   // 그 조건으로 목록 보기

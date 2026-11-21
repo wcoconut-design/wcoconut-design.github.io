@@ -1284,3 +1284,6 @@ body.home-mode .main-head { display: none; }
 /* 실물 CD 표시 */
 .tag-cd { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; line-height: 1.45; }
 .chip-cd { color: var(--accent); border-color: currentColor; font-weight: 700; }
+
+/* 통계 '유형별' 안에서 고르기 */
+.stat-sub { margin: 10px 0 2px; max-width: 560px; }
