@@ -1,0 +1,48 @@
+Copyright (c) 2026 @w_coconut. All rights reserved.
+
+POCKET VOICE BOX
+https://wcoconut-design.github.io/voicebox/
+
+[한국어] 이용 조건
+
+이 앱은 개인적인 기록을 위해 비영리 목적으로 무료 배포합니다.
+
+개인적인 기록을 위한 앱 이용과, 이에 필요한 설치, 저장, 백업을 허용합니다. 앱에서 안내하는 개인 서버('내 서버')의 설치, 운영, 설정에 필요한 코드 복사와 변경도 허용합니다.
+
+본 이용 조건에서 명시적으로 허용한 경우와 법령 또는 GitHub 약관이 허용하는 경우를 제외하고, 개발자가 권리를 가진 앱의 코드와 디자인(리뷰카드 디자인 포함)을 사전 허락 없이 복제, 수정, 재배포하거나 상업적으로 이용할 수 없습니다.
+
+앱 화면과 리뷰카드 디자인은 화면 캡처나 리뷰카드 이미지로 자유롭게 공유해도 됩니다. 다만 그 안에 들어간 작품 표지, 소개문 등은 각 권리자의 이용 조건을 따라 주세요. 앱을 소개하거나 공식 배포 링크를 공유하는 것도 자유롭게 하셔도 됩니다.
+
+앱에 포함된 외부 라이브러리와 폰트 등에는 각각의 라이선스가 적용됩니다. 자세한 내용은 THIRD_PARTY_NOTICES.md를 확인해 주세요.
+
+기록은 기본적으로 이용자의 기기에 저장되며, 동기화를 사용하면 본인의 서버에도 저장됩니다. 정기적으로 백업해 주세요. 법령이 허용하는 범위에서, 개발자의 고의 또는 중대한 과실이 없는 기기 고장이나 데이터 삭제로 인한 기록 손실에 대해서는 책임지지 않습니다. 이 조항은 법령상 배제하거나 제한할 수 없는 책임에는 적용되지 않습니다.
+
+[日本語] 利用条件
+
+このアプリは、個人の記録用として非営利で無料配布しています。
+
+個人の記録のためのアプリの利用と、そのために必要なインストール、保存、バックアップを認めます。アプリ内で案内している「自分のサーバー」の設置、運用、設定に必要なコードの複製や変更も認めます。
+
+本利用条件で明示的に認める場合、および法令またはGitHubの利用規約で認められる場合を除き、開発者が権利を有するアプリのコードやデザイン（レビューカードのデザインを含む）を、事前の許可なく複製、改変、再配布したり、商用利用したりすることはできません。
+
+アプリ画面とレビューカードのデザインは、スクリーンショットやレビューカード画像として自由に共有していただけます。ただし、その中に含まれる作品の表紙や紹介文などは、各権利者の利用条件に従ってください。アプリの紹介や公式配布ページへのリンクの共有も自由です。
+
+使用している外部ライブラリやフォントなどには、それぞれのライセンスが適用されます。詳しくはTHIRD_PARTY_NOTICES.mdをご確認ください。
+
+記録は基本的に利用者の端末に保存され、同期を利用する場合はご自身のサーバーにも保存されます。定期的にバックアップしてください。法令で認められる範囲において、開発者に故意または重大な過失がない端末の故障やデータの削除による記録の消失について、責任を負いません。この条項は、法令上排除または制限できない責任には適用されません。
+
+[English] Terms of use
+
+This app is distributed free of charge, on a non-commercial basis, for personal record keeping.
+
+You may use the app for personal record keeping, including the installation, storage, and backups this requires. You may also copy and change code as needed to install, run, and set up your own server as guided in the app.
+
+Except as expressly permitted in these terms, by law, or by GitHub's Terms of Service, you may not copy, modify, redistribute, or commercially use the app's code or design (including the review card design) owned by the developer without prior permission.
+
+You are free to share the app's screens and review card design as screenshots or review card images. However, any cover art, descriptions, or other content included in them is subject to the terms of its rights holders. You are also free to introduce the app and share the official link.
+
+Third-party libraries and fonts used in the app are subject to their own licenses. See THIRD_PARTY_NOTICES.md for details.
+
+Records are stored on the user's device by default, and also on the user's own server when sync is used. Please back up regularly. To the extent permitted by law, the developer is not liable for loss of records caused by device failure or data deletion, except in cases of the developer's willful misconduct or gross negligence. This clause does not apply to any liability that cannot be excluded or limited by law.
+
+Third-party fonts and libraries: see THIRD_PARTY_NOTICES.md

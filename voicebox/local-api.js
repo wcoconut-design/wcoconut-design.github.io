@@ -1,0 +1,535 @@
+// Copyright 2026 @w_coconut. All rights reserved.
+// VOICE BOX 폰 앱: 서버 없이 이 기기 안에서 데이터를 저장하고 처리합니다.
+// 화면 코드(app.js)가 'api/...'로 요청하면 여기서 가로채서 IndexedDB(기기 안 저장소)로 답해요.
+// 기록은 이 기기 안에만 있어요. 다른 기기로 옮길 때는 '복원용 백업(JSON)'을 쓰세요.
+import { normalizeWork, guessWorkType, renameInList, groupHistory } from './model.js';
+import { toCsv, toXlsx, reviewsHtml } from './export-core.js';
+import { syncOnce, decide, phonePath } from './sync-core.js';
+import { fetchInfo } from './info.js';
+
+const BASE = new URL('./', import.meta.url);
+const API = new URL('api/', BASE).pathname;
+const IMAGES = new URL('images/', BASE).pathname;
+const IMAGE_CACHE = 'vb-images';
+// 첨부 이미지는 앱 폴더와 상관없는 이름으로 저장해요. 그래서 짧은 주소(/voicebox/)와 예전 주소 어디서 열어도 같은 이미지가 보여요.
+const IMG_BASE = new URL('/__vb__/', location.origin);
+const imgKey = (rel) => new URL(String(rel).replace(/^\//, ''), IMG_BASE).href;
+// 예전에 앱 폴더 기준으로 저장한 이미지를 새 이름으로 옮겨요. (한 번 옮기면 다음부터는 할 일이 없어요)
+(async () => {
+  try {
+    const cache = await caches.open(IMAGE_CACHE);
+    for (const req of await cache.keys()) {
+      if (req.url.startsWith(IMG_BASE.href)) continue;
+      const m = new URL(req.url).pathname.match(/\/(images\/.+)$/);
+      if (!m) continue;
+      const key = imgKey(decodeURI(m[1]));
+      if (!(await cache.match(key))) { const r = await cache.match(req); if (r) await cache.put(key, r); }
+      await cache.delete(req);
+    }
+  } catch {}
+})();
+const realFetch = window.fetch.bind(window);
+
+/* ---------- 기기 안 저장소 ---------- */
+const dbReady = new Promise((resolve, reject) => {
+  const req = indexedDB.open('voicebox', 1);
+  req.onupgradeneeded = () => {
+    const db = req.result;
+    db.createObjectStore('kv');
+    db.createObjectStore('history', { autoIncrement: true }).createIndex('id', 'id');
+  };
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+const tx = async (store, mode, fn) => {
+  const db = await dbReady;
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(store, mode);
+    const r = fn(t.objectStore(store));
+    t.oncomplete = () => resolve(r?.result);
+    t.onerror = () => reject(t.error);
+  });
+};
+const kvGet = (k) => tx('kv', 'readonly', (s) => s.get(k));
+const kvSet = (k, v) => tx('kv', 'readwrite', (s) => s.put(v, k));
+
+let works = [];
+let settings = { folders: [] };
+const ready = (async () => {
+  works = ((await kvGet('works')) || []).map(normalizeWork);
+  settings = (await kvGet('settings')) || { folders: [] };
+  // 한 번만: 이미 있는 작품의 동인/상업을 작품 코드·판매 링크로 채워요.
+  if (!settings.workTypeFilled) {
+    for (const w of works) if (!w.workType) w.workType = guessWorkType(w);
+    settings.workTypeFilled = true;
+    await kvSet('works', works); await kvSet('settings', settings);
+  }
+  // 브라우저가 저장소를 함부로 지우지 않게 요청 (홈 화면 앱이면 대부분 허용돼요)
+  try { await navigator.storage?.persist?.(); } catch {}
+})();
+let saveTimer;
+// 기기 저장소에 쓰기: 쓰는 중인 작업을 기억해 두고, 다른 화면으로 넘어가기 전에 끝날 때까지 기다려요.
+let writing = Promise.resolve();
+const writeNow = () => { writing = writing.then(() => kvSet('works', works)).catch(() => {}); return writing; };
+const saveWorks = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { saveTimer = null; writeNow(); }, 250); };
+const flushWorks = () => { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; writeNow(); } return writing; };
+addEventListener('pagehide', () => { flushWorks(); });
+const saveSettings = () => kvSet('settings', settings);
+/* ---------- 자동 백업 (이 기기 안에 최근 5개) ---------- */
+// 하루 한 번, 동기화·백업 복원·초기화 전에 작품 전체를 통째로 저장해 둬요. '백업·되돌리기'에서 그 시점으로 되돌릴 수 있어요.
+const SNAP_MAX = 5;
+async function snapshot(reason, minGapMin = 0) {
+  await ready;
+  if (!works.length) return;
+  const list = (await kvGet('snaps')) || [];
+  if (minGapMin && list[0] && Date.now() - Date.parse(list[0].at) < minGapMin * 60000) return;
+  const at = new Date().toISOString();
+  await kvSet('snap:' + at, works);
+  list.unshift({ at, n: works.length, reason });
+  for (const old of list.slice(SNAP_MAX)) await tx('kv', 'readwrite', (st) => st.delete('snap:' + old.at));
+  await kvSet('snaps', list.slice(0, SNAP_MAX));
+}
+const allHistory = () => tx('history', 'readonly', (st) => st.getAll());
+const HISTORY_KINDS = { '아이맥에서 삭제': 'deleted', '작품 삭제': 'deleted', '아이맥에서 동기화': 'changed', '백업 합치기 전': 'changed', '되돌리기 전': 'changed' };
+const untomb = (ids) => { const set = new Set(ids); const before = (settings.tombstones || []).length; settings.tombstones = (settings.tombstones || []).filter((t) => !set.has(t.id)); if (settings.tombstones.length !== before) saveSettings(); };
+// 되살린 작품은 지금 시각으로 고친 것으로 해서, 동기화하면 다른 기기에도 다시 퍼져요.
+function revive(data) {
+  const now = new Date().toISOString();
+  const cur = works.find((w) => w.id === data.id);
+  const next = normalizeWork({ ...data, updatedAt: now });
+  if (!cur) { works.unshift(next); return 'added'; }
+  const { updatedAt, ...a } = cur; const { updatedAt: _u, ...b } = next;
+  if (same(a, b)) return 'same';
+  addHistory(cur.id, '되돌리기 전', { ...cur });
+  Object.assign(cur, next, { notionPageId: cur.notionPageId || next.notionPageId });
+  return 'updated';
+}
+const addHistory = (id, reason, data) => tx('history', 'readwrite', (s) => s.add({ at: new Date().toISOString(), id, reason, data }));
+const historyOf = async (id) => {
+  const db = await dbReady;
+  return new Promise((resolve) => {
+    const out = [];
+    const r = db.transaction('history').objectStore('history').index('id').openCursor(IDBKeyRange.only(id));
+    r.onsuccess = () => { const c = r.result; if (c) { out.push(c.value); c.continue(); } else resolve(out.reverse()); };
+    r.onerror = () => resolve(out);
+  });
+};
+const same = (a, b) => JSON.stringify(a ?? '') === JSON.stringify(b ?? '');
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2));
+export const hasData = async () => { await ready; return works.length > 0; };
+
+/* ---------- 작품 ---------- */
+const listItem = (w) => { const { promo, translation, ...rest } = w; return { ...rest, hasPromo: !!promo, hasTranslation: !!translation, pending: [] }; };
+const fullItem = (w) => ({ ...w, sourceImages: w.images, pending: [] });
+function folderList() {
+  const set = new Set(settings.folders || []);
+  for (const w of works) if (w.folder) set.add(w.folder);
+  return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
+}
+function update(id, patch, reason = '수정') {
+  const old = works.find((w) => w.id === id);
+  if (!old) return null;
+  const next = normalizeWork({ ...old, ...patch, id, notionPageId: old.notionPageId, updatedAt: new Date().toISOString() });
+  const changed = Object.keys(next).filter((k) => k !== 'updatedAt' && !same(next[k], old[k]));
+  if (!changed.length) return old;
+  addHistory(id, reason, Object.fromEntries(changed.map((k) => [k, old[k]])));
+  Object.assign(old, next);
+  saveWorks();
+  return old;
+}
+// 백업 합치기: 같은 작품은 최근에 고친 쪽을 남겨요.
+function mergeWorks(incoming) {
+  let added = 0, updated = 0, kept = 0;
+  const byId = new Map(works.map((w) => [w.id, w]));
+  for (const raw of incoming) {
+    const w = normalizeWork(raw);
+    const cur = byId.get(w.id);
+    if (!cur) { works.unshift(w); added++; continue; }
+    if ((w.updatedAt || '') > (cur.updatedAt || '')) { addHistory(w.id, '백업 합치기 전', { ...cur }); Object.assign(cur, w); updated++; } else kept++;
+  }
+  saveWorks();
+  return { added, updated, kept };
+}
+
+/* ---------- 이미지 (직접 첨부한 것만 기기 안에 저장) ---------- */
+const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
+async function saveUpload(workId, blob) {
+  const type = blob.type || 'image/png';
+  if (!EXT[type]) throw new Error('jpg, png, webp, gif 이미지만 첨부할 수 있어요.');
+  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-1', await blob.arrayBuffer()))].slice(0, 6).map((b) => b.toString(16).padStart(2, '0')).join('');
+  const rel = `images/${String(workId || 'new').replace(/[^A-Za-z0-9_-]/g, '') || 'new'}/${hash}.${EXT[type]}`;
+  const cache = await caches.open(IMAGE_CACHE);
+  await cache.put(imgKey(rel), new Response(blob, { headers: { 'Content-Type': type } }));
+  return rel;
+}
+
+/* ---------- 동기화 상자 (PC·다른 기기와 주고받기) ---------- */
+// 정보 채우기 서버(같은 Cloudflare Worker)에 동기화 보관함을 붙여서 써요. 설정에서 켜고 꺼요.
+// 자동 동기화는 기본으로 꺼져 있어요. ('자동으로 동기화'를 직접 켠 경우만, v2부터)
+const syncOn = () => { try { const v = JSON.parse(localStorage.getItem('voicebox.sync') || '{}'); return !!v.on && v.v === 2; } catch { return false; } };
+const sync = { running: false, error: '', last: null };
+let syncTimer;
+function syncSoon(ms = 5000) { if (!syncOn()) return; clearTimeout(syncTimer); syncTimer = setTimeout(() => runSync().catch(() => {}), ms); }
+function noteDeleted(id) { settings.tombstones = [...(settings.tombstones || []), { id, at: new Date().toISOString() }]; saveSettings(); }
+async function syncStatus() { const st = (await kvGet('syncState')) || {}; return { ...sync, on: syncOn(), configured: !!relayConfig()?.url, lastSync: st.lastSync || null }; }
+async function runSync(manual = false, opts = {}) {
+  await ready;
+  const cfg = relayConfig();
+  if (!cfg?.url || !cfg?.key) throw new ApiError(msg('먼저 정보 채우기 서버를 연결해 주세요.', 'Connect the info server first.', '先に情報取得サーバーを接続してください。'));
+  if (!manual && !syncOn()) return syncStatus();
+  if (sync.promise) return sync.promise;
+  sync.running = true;
+  sync.promise = (async () => {
+  try {
+    await snapshot('동기화 전', 30);
+    const cache = await caches.open(IMAGE_CACHE);
+    const r = await syncOnce({
+      url: cfg.url, key: cfg.key, device: 'phone', fetch: realFetch,
+      guardDeletes: opts.allowDelete ? 0 : 10, has: (id) => works.some((w) => w.id === id),
+      getState: async () => (await kvGet('syncState')) || {},
+      setState: (st) => kvSet('syncState', st),
+      applyIncoming: (items) => {
+        let changed = 0;
+        for (const it of items) {
+          const i = works.findIndex((w) => w.id === it.id);
+          const cur = i >= 0 ? works[i] : null;
+          const what = decide(cur, it);
+          if (what === 'keep') continue;
+          if (what === 'delete') { addHistory(it.id, '아이맥에서 삭제', { ...cur }); works.splice(i, 1); changed++; continue; }
+          const w = normalizeWork({ ...it.work, images: (it.work.images || []).map((p) => p.replace(/^\/images\//, 'images/')), reviewCard: (it.work.reviewCard || []).map((p) => p.replace(/^\/images\//, 'images/')) });
+          if (what === 'add') { works.unshift(w); changed++; continue; }
+          addHistory(w.id, '아이맥에서 동기화', { ...cur });
+          Object.assign(cur, w, { notionPageId: cur.notionPageId || w.notionPageId });
+          changed++;
+        }
+        if (changed) saveWorks();
+        return changed;
+      },
+      changedSince: (at) => works.filter((w) => (w.updatedAt || '') > at),
+      takeTombstones: () => [...(settings.tombstones || [])],
+      doneTombstones: (list) => { const done = new Set(list.map((t) => t.id)); settings.tombstones = (settings.tombstones || []).filter((t) => !done.has(t.id)); saveSettings(); },
+      hasFile: async (p) => !!(await cache.match(imgKey(p))),
+      readFile: async (p) => { const r = await cache.match(imgKey(p)); return r ? { body: await r.blob(), type: r.headers.get('Content-Type') } : null; },
+      writeFile: (p, blob) => cache.put(imgKey(p), new Response(blob, { headers: { 'Content-Type': blob.type || 'image/png' } })),
+    });
+    // 아이맥에서만 열리던 표지(노션·http)를 받아서 이 기기에 보관해요.
+    let covers = 0;
+    for (const w of works) for (const src of (w.images || []).slice(0, 3)) {
+      const p = phonePath(src);
+      if (!p || await cache.match(imgKey(p))) continue;
+      try { const fr = await realFetch(cfg.url.replace(/\/+$/, '') + '/files?path=' + encodeURIComponent(p), { headers: { 'X-VB-Key': cfg.key } }); if (fr.ok) { await cache.put(imgKey(p), new Response(await fr.blob(), { headers: { 'Content-Type': fr.headers.get('Content-Type') || 'image/jpeg' } })); covers++; } } catch {}
+    }
+    r.covers = covers;
+    if (covers) r.changed = (r.changed || 0) || 1;
+    sync.error = ''; sync.last = r;
+    if (r.changed) { await new Promise((ok) => setTimeout(ok, 300)); window.dispatchEvent(new CustomEvent('vb:reload')); }
+    return { ...r, ...(await syncStatus()) };
+  } catch (e) {
+    if (e.code === 'MASS_DELETE') { const err = new ApiError(msg(`다른 기기에서 지운 작품 ${e.count}개 이상이 이 기기에서도 지워져요.`, `${e.count}+ works deleted on another device will also be deleted here.`, `他の端末で削除した作品${e.count}件以上がこの端末でも削除されます。`), 409); err.code = e.code; err.count = e.count; throw err; }
+    sync.error = e.message;
+    throw e instanceof ApiError ? e : new ApiError(e.message, 502);
+  } finally { sync.running = false; sync.promise = null; }
+  })();
+  return sync.promise;
+}
+ready.then(() => { snapshot('자동 (하루 한 번)', 20 * 60).catch(() => {}); syncSoon(1500); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncSoon(800); });
+window.addEventListener('online', () => syncSoon(800));
+
+/* ---------- 요청 처리 ---------- */
+class ApiError extends Error { constructor(msg, status = 400) { super(msg); this.status = status; } }
+const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
+const MOBILE_ONLY = '이 앱에서는 노션 연동을 지원하지 않아요. 기록은 복원용 백업(JSON)으로 옮겨 주세요.';
+
+// 정보 채우기: 설정에 넣은 중계 서버(Cloudflare Worker)로 판매 페이지를 읽어 와요.
+const lang = () => { try { return JSON.parse(localStorage.getItem('voicebox.view') || '{}').menuLang || 'ko'; } catch { return 'ko'; } };
+const msg = (ko, en, ja) => ({ en, ja }[lang()] || ko);
+export function relayConfig() { try { return JSON.parse(localStorage.getItem('voicebox.relay') || 'null'); } catch { return null; } }
+let relayOld = false; // 서버에 /fetch가 없으면(7판 이하) 이번에 앱을 켜 둔 동안은 예전 방식만 써요
+const relayFetcher = (cfg) => async (u) => {
+  if (relayOld) throw Object.assign(new Error('old'), { code: 'old' });
+  let r;
+  try { r = await realFetch(cfg.url.replace(/\/+$/, '') + '/fetch', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-VB-Key': cfg.key }, body: JSON.stringify({ url: u }), signal: AbortSignal.timeout(25000) }); }
+  catch { throw new Error('net'); }
+  if (r.status === 401) throw Object.assign(new Error('key'), { code: 401 });
+  if (r.status === 404) { relayOld = true; throw Object.assign(new Error('old'), { code: 'old' }); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) throw new Error('판매 페이지가 응답하지 않았어요 (' + (j.status || r.status) + ').');
+  return { ok: true, status: j.status, url: j.url, text: async () => j.body, json: async () => JSON.parse(j.body) };
+};
+async function relayInfo(body) {
+  const cfg = relayConfig();
+  const paste = msg('판매 페이지 글을 원문 칸에 붙여넣고 "원문에서 정보 찾기"를 눌러도 돼요.', 'You can also paste the store page text into the original tab and use "Find info in the original".', '販売ページの文章を原文欄に貼り付けて「原文から情報を探す」も使えます。');
+  if (!cfg?.url || !cfg?.key) throw new ApiError(msg('설정 → 고급에서 정보 채우기 서버를 먼저 연결해 주세요. ', 'Connect the info server in Settings → Advanced first. ', '先に設定 → 詳細設定で情報取得サーバーを接続してください。') + paste);
+  // 서버 8판부터: 서버는 판매 페이지만 받아다 주고, 정보 골라내기는 앱이 해요.
+  // 예전 서버(7판 이하)거나 이 방식이 실패하면 예전처럼 서버에 통째로 맡겨요.
+  if (!relayOld) {
+    try { return await fetchInfo(String(body.url || ''), { quick: !!body.quick, fetcher: relayFetcher(cfg) }); }
+    catch (e) { if (e?.code === 401) throw new ApiError(msg('정보 채우기 서버의 열쇠가 맞지 않아요. 설정에서 확인해 주세요.', 'The info server key does not match. Check Settings.', '情報取得サーバーのキーが一致しません。設定を確認してください。'), 401); }
+  }
+  let r;
+  try {
+    r = await realFetch(cfg.url.replace(/\/+$/, '') + '/info', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-VB-Key': cfg.key }, body: JSON.stringify({ url: body.url || '', quick: !!body.quick }), signal: AbortSignal.timeout(25000) });
+  } catch {
+    throw new ApiError(msg('정보 채우기 서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요. ', 'Could not reach the info server. Check your connection. ', '情報取得サーバーに接続できませんでした。インターネット接続を確認してください。') + paste, 502);
+  }
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) throw new ApiError(msg('정보 채우기 서버의 열쇠가 맞지 않아요. 설정에서 확인해 주세요.', 'The info server key does not match. Check Settings.', '情報取得サーバーのキーが一致しません。設定を確認してください。'), 401);
+  if (!r.ok) throw new ApiError((j.error || msg('정보를 가져오지 못했어요.', 'Could not fetch the info.', '情報を取得できませんでした。')) + ' ' + paste, 502);
+  return j;
+}
+
+// 정보 채우기 진단: 내 서버의 /debug 결과를 알아보기 쉽게 줄여요. (열쇠는 결과에 넣지 않아요)
+async function relayDebug(body) {
+  const cfg = relayConfig();
+  if (!cfg?.url || !cfg?.key) throw new ApiError(msg('설정 → 고급에서 내 서버를 먼저 연결해 주세요.', 'Connect your own server in Settings → Advanced first.', '先に設定 → 詳細設定で自分のサーバーを接続してください。'));
+  const link = String(body.url || '');
+  let r;
+  try { r = await realFetch(cfg.url.replace(/\/+$/, '') + '/debug?url=' + encodeURIComponent(link), { headers: { 'X-VB-Key': cfg.key }, signal: AbortSignal.timeout(40000) }); }
+  catch { throw new ApiError(msg('내 서버에 연결하지 못했어요.', 'Could not reach your server.', 'サーバーに接続できませんでした。'), 502); }
+  if (r.status === 401) throw new ApiError(msg('내 서버의 열쇠가 맞지 않아요.', 'Your server key does not match.', 'サーバーのキーが一致しません。'), 401);
+  const j = await r.json().catch(() => ({}));
+  const pg = j.page || {}, info = j.info || {}, promo = String(info.promo || '');
+  return {
+    where: 'server', serverRegion: [j.colo, j.country].filter(Boolean).join(' / '),
+    page: pg.finalUrl || link, status: pg.status || 0, error: pg.error || info.error || undefined, length: pg.length,
+    hasDesc: !!pg.hasDesc, ageCheck: /年齢認証|adult/i.test(pg.head || ''), head: pg.head,
+    productApi: j.product ? { status: j.product.status, length: j.product.length } : undefined,
+    promoLength: promo.length, promoStart: promo.slice(0, 80), promoEnd: promo.slice(-80),
+  };
+}
+
+async function handle(method, path, url, body) {
+  await ready;
+  let m;
+  if (method === 'GET' && path === 'works') return { works: works.map(listItem), folders: folderList(), notion: { connected: false, unsupported: true } };
+  if (method === 'POST' && path === 'works') {
+    const input = JSON.parse(body || '{}');
+    if (!input.title && !input.titleKo) throw new ApiError('작품명을 입력해 주세요.');
+    const now = new Date().toISOString();
+    const w = normalizeWork({ ...input, id: uuid(), createdAt: now, updatedAt: now });
+    if (!w.workType && !('workType' in input)) w.workType = guessWorkType(w);
+    works.unshift(w);
+    addHistory(w.id, '작품 추가', w);
+    saveWorks();
+    return fullItem(w);
+  }
+  if ((m = path.match(/^works\/([^/]+)$/))) {
+    const id = decodeURIComponent(m[1]);
+    const w = works.find((x) => x.id === id);
+    if (!w) throw new ApiError('작품을 찾지 못했어요.', 404);
+    if (method === 'GET') return fullItem(w);
+    if (method === 'PATCH') { const p = JSON.parse(body || '{}'); delete p.id; delete p.sourceImages; return fullItem(update(id, p)); }
+    if (method === 'DELETE') { addHistory(id, '작품 삭제', { ...w }); works = works.filter((x) => x.id !== id); saveWorks(); noteDeleted(id); return { ok: true }; }
+  }
+  if ((m = path.match(/^works\/([^/]+)\/history$/))) return (await historyOf(decodeURIComponent(m[1]))).slice(0, 100);
+  if ((m = path.match(/^works\/([^/]+)\/restore$/))) {
+    const id = decodeURIComponent(m[1]);
+    const { at } = JSON.parse(body || '{}');
+    const h = (await historyOf(id)).find((x) => x.at === at);
+    if (!h) throw new ApiError('이력을 찾지 못했어요.', 404);
+    const keys = Object.keys(h.data).filter((k) => k in normalizeWork({}) && !['id', 'notionPageId', 'createdAt', 'updatedAt'].includes(k));
+    return fullItem(update(id, Object.fromEntries(keys.map((k) => [k, h.data[k]])), '이력에서 되돌림'));
+  }
+  if (method === 'POST' && path === 'upload') return { src: await saveUpload(url.searchParams.get('work'), body) };
+  if (method === 'GET' && path === 'sync/status') return syncStatus();
+  if (method === 'POST' && path === 'sync/config') { const b = JSON.parse(body || '{}'); localStorage.setItem('voicebox.sync', JSON.stringify({ on: !!b.on, v: 2 })); return syncStatus(); }
+  if (method === 'POST' && path === 'sync/run') return await runSync(true, JSON.parse(body || '{}'));
+  // 백업·되돌리기
+  if (method === 'GET' && path === 'recover') {
+    const ids = new Set(works.map((w) => w.id));
+    const groups = groupHistory(await allHistory(), HISTORY_KINDS, (id) => ids.has(id), (id) => works.find((w) => w.id === id)?.title);
+    return { snapshots: (await kvGet('snaps')) || [], groups: groups.map(({ items, ...g }) => g), device: true };
+  }
+  if (method === 'POST' && path === 'recover') {
+    const b = JSON.parse(body || '{}');
+    let added = 0, updated = 0;
+    if (b.snapshot) {
+      const snap = await kvGet('snap:' + b.snapshot);
+      if (!Array.isArray(snap)) throw new ApiError(msg('그 백업을 찾지 못했어요.', 'That backup was not found.', 'そのバックアップが見つかりません。'), 404);
+      await snapshot('되돌리기 전');
+      for (const w of snap) { const r = revive(w); if (r === 'added') added++; else if (r === 'updated') updated++; }
+      untomb(snap.map((w) => w.id));
+    } else if (b.group) {
+      const ids = new Set(works.map((w) => w.id));
+      const g = groupHistory(await allHistory(), HISTORY_KINDS, (id) => ids.has(id)).find((x) => x.key === b.group);
+      if (!g) throw new ApiError(msg('그 기록을 찾지 못했어요.', 'That record was not found.', 'その記録が見つかりません。'), 404);
+      await snapshot('되돌리기 전');
+      for (const h of g.items) {
+        const cur = works.find((w) => w.id === h.id);
+        const data = g.kind === 'deleted' ? { ...h.data, id: h.id } : { ...(cur || {}), ...h.data, id: h.id };
+        const r = revive(data); if (r === 'added') added++; else if (r === 'updated') updated++;
+      }
+      untomb(g.items.map((h) => h.id));
+    }
+    saveWorks();
+    return { ok: true, added, updated };
+  }
+  // 이 기기 초기화: 작품을 비우고 서버 연결도 풀어요. (지운 기록은 다른 기기로 보내지 않아요)
+  if (method === 'POST' && path === 'reset') {
+    await snapshot('초기화 전');
+    works = []; settings = { folders: [], workTypeFilled: true, tombstones: [] };
+    await kvSet('works', works); await saveSettings();
+    await tx('kv', 'readwrite', (st) => st.delete('syncState'));
+    for (const k of ['voicebox.sync', 'voicebox.relay', 'voicebox.started']) { try { localStorage.removeItem(k); } catch {} }
+    return { ok: true };
+  }
+  if (method === 'POST' && path === 'debug-info') return relayDebug(typeof body === 'string' ? JSON.parse(body || '{}') : body || {});
+  if (method === 'POST' && path === 'info') return relayInfo(typeof body === 'string' ? JSON.parse(body || '{}') : body || {});
+  if (method === 'POST' && path === 'folders') {
+    const n = String(JSON.parse(body || '{}').name || '').trim();
+    if (!n) throw new ApiError('폴더 이름을 입력해 주세요.');
+    settings.folders = [...new Set([...(settings.folders || []), n])];
+    await saveSettings();
+    return { folders: folderList() };
+  }
+  if ((m = path.match(/^folders\/(.+)$/))) {
+    const name = decodeURIComponent(m[1]);
+    if (method === 'DELETE') { for (const w of works) if (w.folder === name) update(w.id, { folder: '' }, '폴더 삭제'); settings.folders = (settings.folders || []).filter((f) => f !== name); }
+    if (method === 'PATCH') {
+      const next = String(JSON.parse(body || '{}').name || '').trim();
+      if (!next) throw new ApiError('폴더 이름을 입력해 주세요.');
+      for (const w of works) if (w.folder === name) update(w.id, { folder: next }, '폴더 이름 변경');
+      settings.folders = (settings.folders || []).map((f) => (f === name ? next : f));
+    }
+    await saveSettings();
+    return { folders: folderList() };
+  }
+  if (path === 'notion/status') return { connected: false, unsupported: true };
+  if (path.startsWith('notion/') || path.startsWith('notion-image/')) throw new ApiError(MOBILE_ONLY, 409);
+  // 쓰지 않는 이미지 정리: 작품·자동 백업·최근 30일 기록 내역에 없는 첨부 이미지와, 어느 작품에도 없는 표지 보관분
+  if (path === 'images/unused' || (method === 'POST' && path === 'images/cleanup')) {
+    const used = new Set(), coverUsed = new Set();
+    const add = (list) => { for (const p of list || []) { const v = String(p); if (/^\/?images\//.test(v)) used.add(v.replace(/^\//, '')); const pp = phonePath(v); if (pp) used.add(pp); if (/^https:/.test(v)) coverUsed.add(v); } };
+    for (const w of works) { add(w.images); add(w.reviewCard); }
+    for (const sn of (await kvGet('snaps')) || []) for (const w of (await kvGet('snap:' + sn.at)) || []) { add(w.images); add(w.reviewCard); }
+    const since = Date.now() - 30 * 864e5;
+    for (const h of await allHistory()) if (h?.data && Date.parse(h.at) > since) { add(h.data.images); add(h.data.reviewCard); }
+    const img = await caches.open(IMAGE_CACHE), cov = await caches.open('vb-covers');
+    const rel = (u) => (decodeURI(new URL(u).pathname).match(/\/(images\/.+)$/) || [])[1] || '';
+    const unused = (await img.keys()).filter((r) => !used.has(rel(r.url)));
+    const covers = (await cov.keys()).filter((r) => !coverUsed.has(r.url) && !coverUsed.has(decodeURI(r.url)));
+    let bytes = 0;
+    for (const r of unused) { const m = await img.match(r); if (m) bytes += (await m.blob()).size; }
+    if (method !== 'POST') return { files: unused.length, bytes, covers: covers.length };
+    for (const r of unused) await img.delete(r);
+    for (const r of covers) await cov.delete(r);
+    return { removed: unused.length, bytes, covers: covers.length };
+  }
+  if (path === 'images/status') return { running: false, done: 0, total: 0, saved: 0, failed: 0, failures: [], cached: 0, unsupported: true };
+  if (path === 'images/download') throw new ApiError('폰 버전은 표지를 판매 사이트에서 바로 불러와요.');
+  if (path === 'image-proxy') {
+    // 동기화로 받아 둔 표지(노션·http)가 있으면 그걸 써요.
+    const pp = phonePath(url.searchParams.get('src') || '');
+    if (pp) { const hit = await (await caches.open(IMAGE_CACHE)).match(imgKey(pp)); if (hit) return { __raw: hit }; }
+    // 정보 채우기 서버가 연결돼 있으면 그 서버를 거쳐 표지를 받아요 (리뷰카드 표지 자동 넣기).
+    const cfg = relayConfig();
+    if (!cfg?.url) throw new ApiError(msg('설정 → 고급에서 정보 채우기 서버를 연결하면 표지가 자동으로 들어가요.', 'Connect the info server in Settings → Advanced to add covers automatically.', '設定 → 詳細設定で情報取得サーバーを接続すると表紙が自動で入ります。'), 404);
+    const r = await realFetch(cfg.url.replace(/\/+$/, '') + '/image?key=' + encodeURIComponent(cfg.key) + '&src=' + encodeURIComponent(url.searchParams.get('src') || ''));
+    if (!r.ok) throw new ApiError(msg('표지를 가져오지 못했어요.', 'Could not fetch the cover.', '表紙を取得できませんでした。'), 502);
+    return { __raw: r };
+  }
+  if (method === 'POST' && path === 'names/rename') {
+    const b = JSON.parse(body || '{}');
+    const field = b.field === 'circle' ? 'circle' : 'actor';
+    const from = String(b.from || '').trim(), to = String(b.to || '').trim();
+    if (!from || !to) throw new ApiError('이름을 입력해 주세요.');
+    let count = 0;
+    const now = new Date().toISOString();
+    for (const w of works) {
+      const next = renameInList(w[field], from, to);
+      if (next == null || next === w[field]) continue;
+      addHistory(w.id, '이름 정리', { [field]: w[field] });
+      w[field] = next; w.updatedAt = now; count++;
+    }
+    if (count) { saveWorks(); syncSoon(); }
+    return { count };
+  }
+  if (method === 'GET' && path === 'names/notion-fix') return { items: [] };
+  if (method === 'POST' && path === 'restore') {
+    const b = JSON.parse(body || '{}');
+    if (b.format !== 'voicebox-local' || !Array.isArray(b.works)) throw new ApiError('VOICE BOX 백업 파일이 아니에요.');
+    // 예전 백업(동인/상업 칸 없음)은 작품 코드·판매 링크로 채워요.
+    for (const w of b.works) if (w && !('workType' in w)) w.workType = guessWorkType(w);
+    await snapshot('백업 복원 전');
+    if (b.merge) { const r = mergeWorks(b.works); return { ok: true, ...r }; }
+    works = b.works.map(normalizeWork);
+    if (b.settings?.folders) settings.folders = b.settings.folders;
+    await kvSet('works', works);
+    await saveSettings();
+    return { ok: true, count: works.length };
+  }
+  throw new ApiError('요청을 찾지 못했어요.', 404);
+}
+
+window.fetch = async (input, init = {}) => {
+  const url = new URL(typeof input === 'string' ? input : input.url, location.href);
+  if (url.origin !== location.origin || !url.pathname.startsWith(API)) return realFetch(input, init);
+  const path = url.pathname.slice(API.length);
+  const method = (init.method || 'GET').toUpperCase();
+  try {
+    const out = await handle(method, path, url, init.body);
+    if (method !== 'GET') await flushWorks();
+    if (method !== 'GET' && /^(works|upload|restore|folders)/.test(path)) syncSoon();
+    return out && out.__raw ? out.__raw : json(out);
+  } catch (e) {
+    return json({ error: e.message || '처리하지 못했어요.', code: e.code, count: e.count }, e.status || 500);
+  }
+};
+
+/* ---------- 내려받기 링크 (백업, 엑셀, CSV, 감상 모음) ---------- */
+const day = () => new Date().toISOString().slice(0, 10);
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function download(data, name, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type }));
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+// 홈 화면 앱에서는 파일을 열면 앱 화면이 그 파일로 바뀌고 돌아올 길이 없어요.
+// 그래서 공유 창(→ '파일에 저장')으로 넘기고, 공유가 안 되는 기기만 내려받기로 해요.
+async function saveFile(data, name, type) {
+  const file = typeof File === 'function' ? new File([data], name, { type }) : null;
+  if (file && standalone() && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); return; }
+    catch (e) { if (e?.name === 'AbortError') return; }
+  }
+  download(data, name, type);
+}
+// 감상 모음: 앱 안에서 열고, 위쪽 '‹ 돌아가기'(또는 뒤로 가기)로 닫아요.
+// 설정 창 위에 떠야 해서 창(dialog)으로 열어요. 뒤로 가기 처리는 화면 코드가 함께 해요.
+function showDoc(html, name) {
+  document.querySelector('.vb-doc')?.remove();
+  const dlg = document.createElement('dialog');
+  dlg.className = 'vb-doc';
+  dlg.innerHTML = `<div class="vb-doc-bar"><button type="button" class="vb-doc-back" data-close>‹ ${msg('돌아가기', 'Back', '戻る')}</button><span class="vb-doc-t">${msg('감상 모음', 'Review collection', '感想まとめ')}</span><button type="button" class="vb-doc-share">${msg('공유·저장', 'Share / Save', '共有・保存')}</button></div><iframe class="vb-doc-frame" title="${msg('감상 모음', 'Review collection', '感想まとめ')}"></iframe>`;
+  document.body.appendChild(dlg);
+  dlg.querySelector('iframe').srcdoc = html;
+  dlg.querySelector('.vb-doc-back').onclick = () => dlg.close();
+  dlg.querySelector('.vb-doc-share').onclick = () => saveFile(html, name, 'text/html');
+  dlg.addEventListener('close', () => dlg.remove());
+  dlg.showModal();
+}
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest('a[href]');
+  if (!a) return;
+  const url = new URL(a.getAttribute('href'), location.href);
+  if (url.origin !== location.origin || !url.pathname.startsWith(API)) return;
+  e.preventDefault();
+  const path = url.pathname.slice(API.length);
+  await ready;
+  if (path === 'backup') { try { localStorage.setItem('voicebox.backupAt', String(Date.now())); } catch {} }
+  if (path === 'backup') saveFile(JSON.stringify({ format: 'voicebox-local', version: 1, at: new Date().toISOString(), works, settings }, null, 1), `voicebox-backup-${day()}.json`, 'application/json');
+  else if (path === 'export/works.csv') saveFile(toCsv(works, lang()), `voicebox-works-${day()}.csv`, 'text/csv');
+  else if (path === 'export/works.xlsx') saveFile(toXlsx(works, undefined, lang()), `voicebox-works-${day()}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  else if (path === 'export/reviews.html') {
+    const html = reviewsHtml(works, (src) => new URL(src, BASE).href, { order: 'played', lang: lang() }).replace(/<a href="\?order=[^"]*">[^<]*<\/a>/g, '');
+    showDoc(html, `voicebox-reviews-${day()}.html`);
+  } else if (path.startsWith('works/') || /\.png$/.test(path)) {
+    // 리뷰카드 내려받기 등은 그대로 둡니다.
+  }
+}, true);
+
+export { IMAGES, IMAGE_CACHE };

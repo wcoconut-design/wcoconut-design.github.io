@@ -1,0 +1,194 @@
+/* Copyright 2026 @w_coconut. All rights reserved. */
+/* 디자인 스타일: 기본(데일리 노트)은 style.css 그대로이고, 여기서는 연필 일기장·스티커 다이어리 두 가지를 덧씌워요.
+   <html data-style="diary|cute"> 일 때만 적용돼요. 기능·배치는 그대로 두고 색·글꼴·테두리·장식만 바꿔요.
+   글꼴: 한국어는 이 폴더의 fonts/ (강원교육모두체, 나눔스퀘어라운드),
+         일본어는 Google Fonts(Klee One, Jua, Mochiy Pop One, Zen Maru Gothic)를 스타일을 고를 때만 불러와요. */
+
+/* 한국어 글꼴: 일본어 글자는 일본어 글꼴이 맡도록 한글·영문·숫자·기본 문장부호만 씁니다. (‹ › 화살표 같은 기호는 빼요) */
+@font-face { font-family: 'VB Gangwon'; src: url('fonts/gangwon-edu-all-bold.woff2') format('woff2'); font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2010-2026, U+2030-2038, U+1100-11FF, U+3130-318F, U+AC00-D7A3; }
+@font-face { font-family: 'VB NanumSquareRound'; src: url('fonts/nanum-square-round-r.woff2') format('woff2'); font-weight: 100 599; font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2010-2026, U+2030-2038, U+1100-11FF, U+3130-318F, U+AC00-D7A3; }
+@font-face { font-family: 'VB NanumSquareRound'; src: url('fonts/nanum-square-round-eb.woff2') format('woff2'); font-weight: 600 900; font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2010-2026, U+2030-2038, U+1100-11FF, U+3130-318F, U+AC00-D7A3; }
+
+/* ───────────── 연필 일기장(diary): 색은 그레이(기본) · 민트 그레이(data-tone="mint") · 핑크 실버(data-tone="pink") ─────────────
+   --pencil: 상자·줄 사이 연필선 / --frame: 표지 사진 액자 / --fill·--on-fill: 고른 칸·+ 버튼을 채우는 색과 그 위 글씨 */
+:root[data-style="diary"] {
+  --bg: #F5F5F3; --surface: #FCFCFB; --surface-2: #F8F8F6; --chip: #EEEEEC; --line: #E2E2DF; --line-soft: #EBEBE8;
+  --text: #3C3C3B; --text-2: #555553; --muted: #7A7A76; --accent: #6E6E6A; --accent-hover: #4A4A47; --accent-soft: #ECECE9; --on-accent: #FFFFFF;
+  --star: #6E6E6A; --star-off: #DCDCD8; --radius: 6px; --pencil: #C9C9C4; --frame: #FFFFFF; --tag-bg: var(--chip); --tag-tx: var(--text-2);
+  --fill: #BEBEBA; --on-fill: #2E2E2C;
+  --font: 'VB Gangwon', 'Klee One', 'Apple SD Gothic Neo', 'Noto Sans KR', serif;
+  font-synthesis: none;
+}
+:root[data-style="diary"][data-tone="mint"] {
+  --bg: #F1F4F1; --surface: #FBFCFA; --surface-2: #F5F8F5; --chip: #E3EAE5; --line: #D2DCD5; --line-soft: #E1E8E3;
+  --text: #323A36; --text-2: #48524D; --muted: #6E7973; --accent: #6A827A; --accent-hover: #546B64; --accent-soft: #DCE7E2; --on-accent: #FFFFFF;
+  --star: #8FA79E; --star-off: #D6DED8; --pencil: #B7C5BD; --tag-bg: #DCE8E4; --tag-tx: #4E6660; --fill: #B4C7C0; --on-fill: #26302B;
+}
+:root[data-style="diary"][data-tone="pink"] {
+  --bg: #F4F5F6; --surface: #FCFCFD; --surface-2: #F7F8F9; --chip: #EBEEF0; --line: #DCE1E4; --line-soft: #E7EBED;
+  --text: #3C3B3E; --text-2: #525357; --muted: #7A8287; --accent: #B07484; --accent-hover: #9A6170; --accent-soft: #F7E8EC; --on-accent: #FFFFFF;
+  --star: #D9A3B0; --star-off: #DCE1E4; --pencil: #BFC9CD; --tag-bg: #E6EBEE; --tag-tx: #5B686D; --fill: #E2B8C3; --on-fill: #3A2329;
+}
+:root[data-style="diary"][data-tone="lav"] {
+  --bg: #F6F5F8; --surface: #FCFCFD; --surface-2: #F8F7FA; --chip: #ECEAF1; --line: #E1DEE8; --line-soft: #EAE8EF;
+  --text: #3A3741; --text-2: #504C58; --muted: #7E7988; --accent: #7D7598; --accent-hover: #6A6386; --accent-soft: #ECE9F3; --on-accent: #FFFFFF;
+  --star: #A39CC0; --star-off: #DEDBE6; --pencil: #CFCAE0; --tag-bg: #E9E6F1; --tag-tx: #5E587A; --fill: #C6C0DA; --on-fill: #2D2937;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="diary"]:not([data-theme="light"]) {
+    --bg: #1A1A19; --surface: #222221; --surface-2: #262625; --chip: #2E2E2C; --line: #363634; --line-soft: #2B2B29;
+    --text: #E9E9E6; --text-2: #CFCFCB; --muted: #A3A39E; --accent: #D6D6D2; --accent-hover: #FFFFFF; --accent-soft: #333331; --on-accent: #1A1A19;
+    --star: #D9D9D4; --star-off: #3C3C3A; --pencil: #4A4A47; --frame: #3A3A38; --tag-bg: var(--chip); --tag-tx: var(--text-2); --fill: var(--accent); --on-fill: var(--on-accent);
+  }
+  :root[data-style="diary"][data-tone="mint"]:not([data-theme="light"]) {
+    --bg: #18201D; --surface: #1F2825; --surface-2: #232D29; --chip: #2B3632; --line: #33403B; --line-soft: #29332F;
+    --text: #E5EDE9; --text-2: #C9D5D0; --muted: #98A6A0; --accent: #B4C7C0; --accent-hover: #D3E0DB; --accent-soft: #2C3A35; --on-accent: #18201D;
+    --star: #B4C7C0; --star-off: #36433E; --pencil: #4A5A54; --frame: #34413C; --tag-bg: #2B3833; --tag-tx: #B4C7C0; --fill: #B4C7C0; --on-fill: #18201D;
+  }
+  :root[data-style="diary"][data-tone="pink"]:not([data-theme="light"]) {
+    --bg: #1B1C1F; --surface: #232428; --surface-2: #27292D; --chip: #2E3035; --line: #383B40; --line-soft: #2C2E33;
+    --text: #ECECEF; --text-2: #D0D1D6; --muted: #9EA5AA; --accent: #E3A3B2; --accent-hover: #F0C0CB; --accent-soft: #3A2A30; --on-accent: #24161B;
+    --star: #E3A3B2; --star-off: #3A3D42; --pencil: #4B5156; --frame: #393C41; --tag-bg: #2E3338; --tag-tx: #B9C4C9; --fill: #E3A3B2; --on-fill: #24161B;
+  }
+  :root[data-style="diary"][data-tone="lav"]:not([data-theme="light"]) {
+    --bg: #1B1A20; --surface: #23222A; --surface-2: #27262E; --chip: #2F2D37; --line: #393641; --line-soft: #2D2B34;
+    --text: #ECEAF2; --text-2: #D0CDD9; --muted: #A09BAD; --accent: #CFC9E3; --accent-hover: #E4DFF2; --accent-soft: #34303F; --on-accent: #1E1B26;
+    --star: #CFC9E3; --star-off: #3A3742; --pencil: #4D4958; --frame: #3B3844; --tag-bg: #2F2C38; --tag-tx: #C3BDD6; --fill: #CFC9E3; --on-fill: #1E1B26;
+  }
+}
+:root[data-style="diary"][data-theme="dark"] {
+  --bg: #1A1A19; --surface: #222221; --surface-2: #262625; --chip: #2E2E2C; --line: #363634; --line-soft: #2B2B29;
+  --text: #E9E9E6; --text-2: #CFCFCB; --muted: #A3A39E; --accent: #D6D6D2; --accent-hover: #FFFFFF; --accent-soft: #333331; --on-accent: #1A1A19;
+  --star: #D9D9D4; --star-off: #3C3C3A; --pencil: #4A4A47; --frame: #3A3A38; --tag-bg: var(--chip); --tag-tx: var(--text-2); --fill: var(--accent); --on-fill: var(--on-accent);
+}
+:root[data-style="diary"][data-tone="mint"][data-theme="dark"] {
+  --bg: #18201D; --surface: #1F2825; --surface-2: #232D29; --chip: #2B3632; --line: #33403B; --line-soft: #29332F;
+  --text: #E5EDE9; --text-2: #C9D5D0; --muted: #98A6A0; --accent: #B4C7C0; --accent-hover: #D3E0DB; --accent-soft: #2C3A35; --on-accent: #18201D;
+  --star: #B4C7C0; --star-off: #36433E; --pencil: #4A5A54; --frame: #34413C; --tag-bg: #2B3833; --tag-tx: #B4C7C0; --fill: #B4C7C0; --on-fill: #18201D;
+}
+:root[data-style="diary"][data-tone="pink"][data-theme="dark"] {
+  --bg: #1B1C1F; --surface: #232428; --surface-2: #27292D; --chip: #2E3035; --line: #383B40; --line-soft: #2C2E33;
+  --text: #ECECEF; --text-2: #D0D1D6; --muted: #9EA5AA; --accent: #E3A3B2; --accent-hover: #F0C0CB; --accent-soft: #3A2A30; --on-accent: #24161B;
+  --star: #E3A3B2; --star-off: #3A3D42; --pencil: #4B5156; --frame: #393C41; --tag-bg: #2E3338; --tag-tx: #B9C4C9; --fill: #E3A3B2; --on-fill: #24161B;
+}
+:root[data-style="diary"][data-tone="lav"][data-theme="dark"] {
+  --bg: #1B1A20; --surface: #23222A; --surface-2: #27262E; --chip: #2F2D37; --line: #393641; --line-soft: #2D2B34;
+  --text: #ECEAF2; --text-2: #D0CDD9; --muted: #A09BAD; --accent: #CFC9E3; --accent-hover: #E4DFF2; --accent-soft: #34303F; --on-accent: #1E1B26;
+  --star: #CFC9E3; --star-off: #3A3742; --pencil: #4D4958; --frame: #3B3844; --tag-bg: #2F2C38; --tag-tx: #C3BDD6; --fill: #CFC9E3; --on-fill: #1E1B26;
+}
+[data-style="diary"] body, [data-style="diary"] button, [data-style="diary"] input, [data-style="diary"] textarea, [data-style="diary"] select { font-family: var(--font); }
+[data-style="diary"] h1, [data-style="diary"] h2, [data-style="diary"] h3, [data-style="diary"] b, [data-style="diary"] strong { font-weight: 400; }
+[data-style="diary"] .hm-hello h1 { font-size: 27px; letter-spacing: -.01em; }
+[data-style="diary"] .hm-h h2 { display: flex; align-items: center; gap: 8px; }
+[data-style="diary"] .hm-h h2::before { content: ''; width: 14px; height: 1px; background: var(--text-2); flex: none; }
+/* 상자: 연필선 */
+[data-style="diary"] .hm-card, [data-style="diary"] .hm-kpi, [data-style="diary"] .list, [data-style="diary"] .set-group, [data-style="diary"] .stat-card,
+[data-style="diary"] .stat-body, [data-style="diary"] .review-card { border: 1px solid var(--pencil) !important; border-radius: 4px; box-shadow: 0 6px 18px -14px rgba(0,0,0,.25); }
+[data-style="diary"] .list.grid { border: none !important; box-shadow: none; }
+[data-style="diary"] .row { border-bottom: 1px dashed var(--pencil) !important; }
+[data-style="diary"] .list.grid .row { border-bottom: none !important; }
+/* 표지: 어디서나 사진 액자 */
+[data-style="diary"] .thumb, [data-style="diary"] .d-cover { border: 4px solid var(--frame) !important; border-radius: 8px !important; box-shadow: 0 0 0 1px var(--line), 0 3px 8px rgba(0,0,0,.08) !important; box-sizing: border-box; }
+[data-style="diary"] .row .thumb { border-width: 3px !important; border-radius: 6px !important; }
+[data-style="diary"] .now-item .thumb, [data-style="diary"] .hm-pick .thumb { border-width: 5px !important; }
+/* 칩·버튼 */
+[data-style="diary"] .chip, [data-style="diary"] .pill { border-radius: 3px; background: transparent; border: 1px solid var(--line); }
+[data-style="diary"] .chip.tag { background: var(--tag-bg); border-color: transparent; color: var(--tag-tx); }
+[data-style="diary"] .chip.on, [data-style="diary"] .nchip.on, [data-style="diary"] .seg button.on, [data-style="diary"] .tabs button.on, [data-style="diary"] .stat-kind-grid button.on,
+[data-style="diary"] .view-switch button.on, [data-style="diary"] .primary-btn { background: var(--fill) !important; border-color: var(--fill) !important; color: var(--on-fill) !important; }
+[data-style="diary"] .primary-btn, [data-style="diary"] .ghost-btn, [data-style="diary"] .seg { border-radius: 4px; }
+[data-style="diary"] .modal { border-radius: 8px; }
+
+/* ───────────── 스티커 다이어리(cute): 일본풍 발랄 (핑크·민트·레몬, 굵은 테두리 스티커) ───────────── */
+:root[data-style="cute"] {
+  --bg: #FFF4F7; --surface: #FFFFFF; --surface-2: #FFF8FA; --chip: #FFE8EF; --line: #F5D3DE; --line-soft: #FBE3EA;
+  --text: #4A3349; --text-2: #5E4560; --muted: #8C6F89; --accent: #F0517F; --accent-hover: #D93B69; --accent-soft: #FFE2EC; --on-accent: #FFFFFF;
+  --star: #F5A300; --star-off: #F4DCE4; --radius: 18px;
+  --ink: #4A3349; --mint: #7ED9C3; --lemon: #FFE07A; --sky: #9FD3FF; --dot: #FFD3E1;
+  --sh2: var(--mint); --sh3: var(--sky); --badge-tx: #4A3349; --pill-bg: var(--mint);
+  --font: 'VB NanumSquareRound', 'Zen Maru Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --pop: 'Jua', 'Mochiy Pop One', 'VB NanumSquareRound', sans-serif;
+  font-synthesis: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="cute"]:not([data-theme="light"]) {
+    --bg: #231A29; --surface: #2D2233; --surface-2: #33263A; --chip: #3D2D44; --line: #4C3854; --line-soft: #3A2B41;
+    --text: #FBEAF2; --text-2: #E8D2DF; --muted: #BBA0B5; --accent: #FF8DB3; --accent-hover: #FFB0CB; --accent-soft: #4A2A3E; --on-accent: #2A1525;
+    --star: #FFC94D; --star-off: #4A3A4C; --ink: #9A7894; --dot: #3A2A40;
+  }
+}
+:root[data-style="cute"][data-theme="dark"] {
+  --bg: #231A29; --surface: #2D2233; --surface-2: #33263A; --chip: #3D2D44; --line: #4C3854; --line-soft: #3A2B41;
+  --text: #FBEAF2; --text-2: #E8D2DF; --muted: #BBA0B5; --accent: #FF8DB3; --accent-hover: #FFB0CB; --accent-soft: #4A2A3E; --on-accent: #2A1525;
+  --star: #FFC94D; --star-off: #4A3A4C; --ink: #9A7894; --dot: #3A2A40;
+}
+/* 스티커 다이어리 색: 핑크(기본) · 블랙 · 소다 · 라벤더 (모양은 같고 색만 달라요) */
+:root[data-style="cute"][data-tone="black"] { --bg: #F3F3F1; --surface: #FFFFFF; --surface-2: #F8F8F7; --chip: #ECECEA; --line: #DADAD6; --line-soft: #E6E6E3; --text: #161616; --text-2: #333333; --muted: #6E6E6B; --accent: #161616; --accent-hover: #000000; --accent-soft: #E9E9E6; --on-accent: #FFFFFF; --star: #161616; --star-off: #DADAD6; --ink: #161616; --lemon: #F2F2EF; --dot: #D8D8D4; --sh2: #8C8C88; --sh3: #C8C8C4; --badge-tx: #161616; --pill-bg: #FFFFFF; }
+:root[data-style="cute"][data-tone="soda"] { --bg: #EEF8FB; --surface: #FFFFFF; --surface-2: #F5FBFD; --chip: #DDF1F7; --line: #C6E6EF; --line-soft: #DDF0F5; --text: #21414F; --text-2: #335664; --muted: #5E7E8C; --accent: #1F9CC4; --accent-hover: #16809F; --accent-soft: #D8F0F8; --on-accent: #FFFFFF; --star: #F5A300; --star-off: #CFE7EE; --ink: #21414F; --mint: #8FE3CF; --lemon: #FFE58A; --sky: #FF9EBB; --dot: #CBEAF3; --sh2: #8FE3CF; --sh3: #FF9EBB; --badge-tx: #21414F; --pill-bg: #8FE3CF; }
+:root[data-style="cute"][data-tone="lav"] { --bg: #F6F2FD; --surface: #FFFFFF; --surface-2: #FAF7FE; --chip: #ECE4FB; --line: #DCCFF5; --line-soft: #E9E1FA; --text: #3B2F5C; --text-2: #4F4373; --muted: #7A6E99; --accent: #8A63DD; --accent-hover: #7148C8; --accent-soft: #EDE5FC; --on-accent: #FFFFFF; --star: #F5A300; --star-off: #E3DAF7; --ink: #3B2F5C; --mint: #9FE6D2; --lemon: #FFE58A; --sky: #FFB3CC; --dot: #E2D6FA; --sh2: #9FE6D2; --sh3: #FFB3CC; --badge-tx: #3B2F5C; --pill-bg: #9FE6D2; }
+@media (prefers-color-scheme: dark) {
+  :root[data-style="cute"][data-tone="black"]:not([data-theme="light"]) { --bg: #141414; --surface: #1E1E1E; --surface-2: #232323; --chip: #2A2A2A; --line: #3A3A3A; --line-soft: #2C2C2C; --text: #F2F2F2; --text-2: #D6D6D6; --muted: #A0A0A0; --accent: #F2F2F2; --accent-hover: #FFFFFF; --accent-soft: #2E2E2E; --on-accent: #141414; --star: #F2F2F2; --star-off: #3A3A3A; --ink: #BDBDBD; --lemon: #E8E8E5; --dot: #262626; --sh2: #6E6E6B; --sh3: #3F3F3D; --badge-tx: #141414; --pill-bg: #E8E8E5; }
+  :root[data-style="cute"][data-tone="soda"]:not([data-theme="light"]) { --bg: #10222B; --surface: #172C36; --surface-2: #1B323D; --chip: #213B47; --line: #2C4A57; --line-soft: #223D49; --text: #E4F4FA; --text-2: #C3DEE8; --muted: #8FB1BE; --accent: #6FD0F0; --accent-hover: #9EE0F6; --accent-soft: #183E4C; --on-accent: #0C2530; --star: #FFC94D; --star-off: #2C4A57; --ink: #6F95A6; --dot: #1C3541; --sh2: #8FE3CF; --sh3: #FF9EBB; --badge-tx: #21414F; --pill-bg: #8FE3CF; }
+  :root[data-style="cute"][data-tone="lav"]:not([data-theme="light"]) { --bg: #1C1729; --surface: #251F35; --surface-2: #2A233C; --chip: #332A48; --line: #403558; --line-soft: #30283F; --text: #F0EBFC; --text-2: #D8CFF2; --muted: #A79DC6; --accent: #B79CF5; --accent-hover: #CDB9FA; --accent-soft: #3A2E5A; --on-accent: #1E1534; --star: #FFC94D; --star-off: #403558; --ink: #8D7CB8; --dot: #2E2642; --sh2: #9FE6D2; --sh3: #FFB3CC; --badge-tx: #3B2F5C; --pill-bg: #9FE6D2; }
+}
+:root[data-style="cute"][data-tone="black"][data-theme="dark"] { --bg: #141414; --surface: #1E1E1E; --surface-2: #232323; --chip: #2A2A2A; --line: #3A3A3A; --line-soft: #2C2C2C; --text: #F2F2F2; --text-2: #D6D6D6; --muted: #A0A0A0; --accent: #F2F2F2; --accent-hover: #FFFFFF; --accent-soft: #2E2E2E; --on-accent: #141414; --star: #F2F2F2; --star-off: #3A3A3A; --ink: #BDBDBD; --lemon: #E8E8E5; --dot: #262626; --sh2: #6E6E6B; --sh3: #3F3F3D; --badge-tx: #141414; --pill-bg: #E8E8E5; }
+:root[data-style="cute"][data-tone="soda"][data-theme="dark"] { --bg: #10222B; --surface: #172C36; --surface-2: #1B323D; --chip: #213B47; --line: #2C4A57; --line-soft: #223D49; --text: #E4F4FA; --text-2: #C3DEE8; --muted: #8FB1BE; --accent: #6FD0F0; --accent-hover: #9EE0F6; --accent-soft: #183E4C; --on-accent: #0C2530; --star: #FFC94D; --star-off: #2C4A57; --ink: #6F95A6; --dot: #1C3541; --sh2: #8FE3CF; --sh3: #FF9EBB; --badge-tx: #21414F; --pill-bg: #8FE3CF; }
+:root[data-style="cute"][data-tone="lav"][data-theme="dark"] { --bg: #1C1729; --surface: #251F35; --surface-2: #2A233C; --chip: #332A48; --line: #403558; --line-soft: #30283F; --text: #F0EBFC; --text-2: #D8CFF2; --muted: #A79DC6; --accent: #B79CF5; --accent-hover: #CDB9FA; --accent-soft: #3A2E5A; --on-accent: #1E1534; --star: #FFC94D; --star-off: #403558; --ink: #8D7CB8; --dot: #2E2642; --sh2: #9FE6D2; --sh3: #FFB3CC; --badge-tx: #3B2F5C; --pill-bg: #9FE6D2; }
+[data-style="cute"] body { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px); background-size: 22px 22px; }
+[data-style="cute"] body, [data-style="cute"] button, [data-style="cute"] input, [data-style="cute"] textarea, [data-style="cute"] select { font-family: var(--font); }
+[data-style="cute"] h1, [data-style="cute"] h2, [data-style="cute"] .hm-h h2, [data-style="cute"] .title-row h1, [data-style="cute"] .m-head h2 { font-family: var(--pop); font-weight: 400; }
+[data-style="cute"] .hm-hello h1 { font-size: 29px; }
+[data-style="cute"] .hm-hello h1::after { content: ' ♪'; color: var(--accent); }
+[data-style="cute"] .hm-hello p { display: inline-block; background: var(--lemon); color: var(--badge-tx); border: 2px solid var(--ink); border-radius: 999px; padding: 2px 12px; margin-top: 6px; }
+[data-style="cute"] .hm-h h2::before { content: '✦ '; color: var(--accent); }
+/* 테두리 규칙 3가지 — ① 상자: 진한 선 + 그림자 / ② 버튼·입력칸: 진한 선만 / ③ 표지: 진한 선 + 색 그림자.
+   얇은 분홍 점선은 상자 안쪽 구분선에만 써요. 선 굵기는 모두 --bw(2px). 새 화면을 만들면 이 셋 중 하나에 넣어 주세요. */
+:root[data-style="cute"] { --bw: 2px; }
+/* ① 상자 */
+[data-style="cute"] .hm-card, [data-style="cute"] .hm-kpi, [data-style="cute"] .list, [data-style="cute"] .set-group,
+[data-style="cute"] .stat-card, [data-style="cute"] .stat-body, [data-style="cute"] .review-card, [data-style="cute"] .buy-line:not(.empty), [data-style="cute"] .sel-bar
+{ border: var(--bw) solid var(--ink) !important; border-radius: 20px !important; box-shadow: 3px 3px 0 var(--ink) !important; background: var(--surface) !important; }
+[data-style="cute"] .buy-line.empty { border: var(--bw) dashed var(--ink) !important; border-radius: 20px !important; }
+[data-style="cute"] .list.grid { border: none !important; box-shadow: none !important; background: transparent !important; }
+[data-style="cute"] .modal { border: var(--bw) solid var(--ink); border-radius: 24px; }
+/* ② 버튼·입력칸 */
+[data-style="cute"] .chip, [data-style="cute"] .pill, [data-style="cute"] .nchip, [data-style="cute"] .seg, [data-style="cute"] .search, [data-style="cute"] .ghost-btn,
+[data-style="cute"] .tool-btn, [data-style="cute"] .view-switch, [data-style="cute"] .icon-btn, [data-style="cute"] .hd-btn, [data-style="cute"] .stat-kind-grid button,
+[data-style="cute"] .stat-mode, [data-style="cute"] select, [data-style="cute"] .field input, [data-style="cute"] .input, [data-style="cute"] .tabs
+{ border: var(--bw) solid var(--ink) !important; box-shadow: none !important; }
+[data-style="cute"] .chip, [data-style="cute"] .pill, [data-style="cute"] .nchip, [data-style="cute"] .seg, [data-style="cute"] .search, [data-style="cute"] .ghost-btn,
+[data-style="cute"] .tool-btn, [data-style="cute"] .view-switch, [data-style="cute"] .icon-btn, [data-style="cute"] .hd-btn, [data-style="cute"] .stat-mode, [data-style="cute"] select { border-radius: 999px !important; }
+[data-style="cute"] .tabs { border-radius: 16px !important; }
+[data-style="cute"] .stat-kind-grid button { border-radius: 14px !important; }
+[data-style="cute"] .chip, [data-style="cute"] .pill, [data-style="cute"] .nchip { background: var(--surface); font-weight: 700; }
+[data-style="cute"] .chip.tag { background: var(--accent-soft); color: var(--text); }
+[data-style="cute"] .chip.on, [data-style="cute"] .nchip.on, [data-style="cute"] .seg button.on, [data-style="cute"] .stat-kind-grid button.on,
+[data-style="cute"] .stat-mode button.on, [data-style="cute"] .view-switch button.on, [data-style="cute"] .tabs button.on, [data-style="cute"] .tool-btn.on, [data-style="cute"] .hd-btn.on
+{ background: var(--accent) !important; color: var(--on-accent) !important; }
+[data-style="cute"] .stat-mode { background: var(--surface) !important; padding: 3px !important; }
+[data-style="cute"] .stat-mode button { border-radius: 999px !important; }
+[data-style="cute"] .primary-btn { border: var(--bw) solid var(--ink) !important; border-radius: 999px; box-shadow: 2px 2px 0 var(--ink) !important; }
+[data-style="cute"] .d-top .icon-btn { border: none !important; }
+[data-style="cute"] .hm-h .link-btn { background: var(--pill-bg); color: var(--badge-tx); border: var(--bw) solid var(--ink); border-radius: 999px; padding: 2px 10px; font-weight: 700; }
+[data-style="cute"] .hm-hello p { border-width: var(--bw); }
+/* ③ 표지 */
+[data-style="cute"] .thumb, [data-style="cute"] .d-cover { border: var(--bw) solid var(--ink) !important; box-sizing: border-box; border-radius: 16px !important; box-shadow: 3px 3px 0 var(--accent) !important; }
+[data-style="cute"] .row .thumb { border-radius: 12px !important; box-shadow: 2px 2px 0 var(--accent) !important; }
+[data-style="cute"] .now-item:nth-child(3n+2) .thumb, [data-style="cute"] .row:nth-child(3n+2) .thumb { box-shadow: 3px 3px 0 var(--sh2) !important; }
+[data-style="cute"] .now-item:nth-child(3n) .thumb, [data-style="cute"] .row:nth-child(3n) .thumb { box-shadow: 3px 3px 0 var(--sh3) !important; }
+/* 상자 안쪽 구분선 */
+[data-style="cute"] .row { border-bottom: 2px dotted var(--line) !important; }
+[data-style="cute"] .list.grid .row { border-bottom: none !important; }
+[data-style="cute"] .row-title { font-weight: 700; }
+
+/* 폰 아래 메뉴 */
+@media (max-width: 760px) {
+  [data-style="diary"] .tabbar { background: color-mix(in srgb, var(--surface) 94%, transparent); }
+  [data-style="diary"] .tabbar .tab-add { background: var(--fill); color: var(--on-fill); }
+  [data-style="cute"] .tabbar { border-top: var(--bw) solid var(--ink); }
+  [data-style="cute"] .tabbar button.on svg { background: var(--accent-soft); border-radius: 12px; padding: 2px 8px; box-sizing: content-box; }
+  [data-style="cute"] .tabbar .tab-add { border: var(--bw) solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+}
