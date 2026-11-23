@@ -2134,7 +2134,9 @@ function bindEditor() {
     toast(ED.promo.length > MAX ? L('글이 길어서 앞부분만 넣었어요. 번역을 복사해서 번역 탭에 붙여넣어 주세요.') : L('번역을 복사해서 번역 탭에 붙여넣어 주세요.'));
   };
   $('edDelete') && ($('edDelete').onclick = async () => {
-    if (!confirm(L("'{t}'을(를) 지울까요? 노션 페이지는 그대로 남아요.", { t: displayTitle(ED) }))) return;
+    // 노션 안내는 PC에서 노션을 연결했을 때만 보여요.
+    const delMsg = S.notion?.connected ? "'{t}'을(를) 지울까요? 노션 페이지는 그대로 남아요." : "'{t}'을(를) 지울까요? 지운 작품은 설정의 '되돌리기'에서 되살릴 수 있어요.";
+    if (!confirm(L(delMsg, { t: displayTitle(ED) }))) return;
     try {
       await api('api/works/' + encodeURIComponent(ED.id), { method: 'DELETE' });
       S.works = S.works.filter((w) => w.id !== ED.id);

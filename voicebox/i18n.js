@@ -770,4 +770,5 @@ window.VB_I18N = {
   '공개 도구': ['Open source', 'オープンソース'],
   '앱 소개와 이용 조건': ['About and terms', 'アプリ紹介と利用条件'],
   '자세한 라이선스': ['License details', 'ライセンスの詳細'],
+  "'{t}'을(를) 지울까요? 지운 작품은 설정의 '되돌리기'에서 되살릴 수 있어요.": ["Delete '{t}'? You can bring it back from Undo in Settings.", "「{t}」を削除しますか？削除した作品は設定の「元に戻す」から復元できます。"],
 };
