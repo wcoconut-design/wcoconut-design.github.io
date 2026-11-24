@@ -85,6 +85,7 @@ body{margin:0;color:var(--ink);font:16px/1.5 "Noto Sans KR",system-ui,sans-serif
 .dials{background:var(--grain),linear-gradient(#1d1c1a,#141312);border:1px solid #000;box-shadow:inset 0 1px 0 #ffffff12,0 24px 50px -28px #000;border-radius:16px;padding:18px}
 .dials header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .dials h2{margin:0;font:700 22px/1.1 var(--fh);letter-spacing:.04em;text-transform:uppercase}
+.knob:disabled,.reset:disabled{opacity:.4;cursor:default}
 .reset{min-height:40px;padding:0 12px;border-radius:999px;border:1px solid #3a3835;background:#211f1d;color:var(--ink);font:500 13px/1 "Noto Sans KR",sans-serif;cursor:pointer}
 .row{padding:12px 0;border-top:1px solid var(--line)}
 .dials header+.row,.two>.row:first-child{border-top:0}
@@ -101,7 +102,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;heigh
 input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;border:1px solid #57544f;background:radial-gradient(circle at 40% 35%,#fbfaf6,#b9b7b1 70%,#8c8a84);box-shadow:0 2px 5px #000a}
 input[type=range]:focus-visible{outline:2px solid var(--edge);outline-offset:2px;border-radius:6px}
 .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
-.seg.n2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.seg.n2{grid-template-columns:repeat(2,minmax(0,1fr))}.seg.n4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.af{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;transform:scale(1.25);background:linear-gradient(#fff,#fff) 0 0/14px 2px,linear-gradient(#fff,#fff) 0 0/2px 14px,linear-gradient(#fff,#fff) 100% 0/14px 2px,linear-gradient(#fff,#fff) 100% 0/2px 14px,linear-gradient(#fff,#fff) 0 100%/14px 2px,linear-gradient(#fff,#fff) 0 100%/2px 14px,linear-gradient(#fff,#fff) 100% 100%/14px 2px,linear-gradient(#fff,#fff) 100% 100%/2px 14px;background-repeat:no-repeat;filter:drop-shadow(0 0 2px #000)}
+.af.on{opacity:1;transform:scale(1)}.stage.focus canvas{cursor:crosshair}
+.tip{font-size:12.5px;color:var(--mut);margin:8px 0 0}
 .seg button{min-height:40px;border-radius:8px;border:1px solid #34322e;background:#1f1d1b;color:#bdb7aa;font:500 14px/1 "Noto Sans KR",sans-serif;cursor:pointer}
 .seg button[aria-pressed=true]{color:#1c1b19;border-color:#8d8b85;background:repeating-linear-gradient(90deg,#0000 0 2px,#ffffff1a 2px 3px),linear-gradient(#f1f0ec,#bdbbb5)}
 .seg button:focus-visible,.knob:focus-within,.knob:focus-visible,.shutter:focus-visible,.reset:focus-visible{outline:2px solid var(--edge);outline-offset:3px}
@@ -125,6 +129,7 @@ input[type=range]:focus-visible{outline:2px solid var(--edge);outline-offset:2px
    <h1>Film Simulation<small>X100V 필름 시뮬레이션 필터</small></h1>
    <div class="ctl">
     <label class="knob">사진 열기<input type="file" id="file" accept="image/*"></label>
+    <button class="knob" id="undo" type="button" aria-label="이전 단계" title="이전 단계" style="padding:0 13px;font-size:20px">↶</button>
     <button class="knob" id="hold" type="button">원본</button>
     <button class="shutter" id="save" type="button" aria-label="저장">SAVE</button>
    </div>
@@ -132,7 +137,7 @@ input[type=range]:focus-visible{outline:2px solid var(--edge);outline-offset:2px
   <div class="leather">
    <div class="frame">
     <div class="ep t"><span id="epName">CLASSIC CHROME</span><span>▸ 24A</span></div>
-    <div class="stage"><canvas id="cv" aria-label="보정된 사진 미리보기"></canvas><div class="dev" id="dev"></div><div class="chip" id="chip">원본</div></div>
+    <div class="stage" id="stage"><canvas id="cv" aria-label="보정된 사진 미리보기"></canvas><div class="af" id="af"></div><div class="dev" id="dev"></div><div class="chip" id="chip">원본</div></div>
     <div class="ep b"><span>X100V · 400</span><span id="epNo">▸ 04</span></div>
    </div>
   </div>
@@ -142,7 +147,7 @@ input[type=range]:focus-visible{outline:2px solid var(--edge);outline-offset:2px
  <p class="hint" id="hint">샘플 이미지예요. 사진 열기로 내 사진을 불러오세요. 원본 버튼은 누르고 있는 동안 원본을 보여줘요.</p>
 </section>
 <section class="dials" aria-label="화질 설정">
- <header><h2>Image Quality</h2><button class="reset" id="reset" type="button">초기화</button></header>
+ <header><h2>Image Quality</h2><div style="display:flex;gap:6px"><button class="reset" id="undo2" type="button">↶ 이전 단계</button><button class="reset" id="reset" type="button">초기화</button></div></header>
  <div class="two">
   <div class="row"><div class="lab">하이라이트 톤 <output id="o_hl"></output></div><input type="range" id="hl" min="-2" max="4" step="0.5" style="--tk:calc(100%/12)"></div>
   <div class="row"><div class="lab">섀도 톤 <output id="o_sh"></output></div><input type="range" id="sh" min="-2" max="4" step="0.5" style="--tk:calc(100%/12)"></div>
@@ -159,6 +164,9 @@ input[type=range]:focus-visible{outline:2px solid var(--edge);outline-offset:2px
   <div class="row"><div class="lab"><span>노출<span class="x">추가</span></span> <output id="o_ev"></output></div><input type="range" id="ev" min="-2" max="2" step="0.1" style="--tk:calc(100%/12)"></div>
   <div class="row"><div class="lab"><span>비네팅<span class="x">추가</span></span> <output id="o_vig"></output></div><input type="range" id="vig" min="0" max="10" step="1" style="--tk:10%"></div>
  </div>
+ <div class="row" style="border-top:1px solid var(--line)"><div class="lab"><span>아웃포커싱<span class="x">추가</span></span></div><div class="seg n4" data-k="ap"></div>
+  <div class="lab" style="margin-top:12px">초점 범위 <output id="o_fsz"></output></div><input type="range" id="fsz" min="5" max="80" step="5" style="--tk:calc(100%/15)">
+  <p class="tip">사진을 탭하면 그 위치에 초점이 맞아요. 바깥으로 갈수록 흐려져요.</p></div>
  <p class="note">카메라 내부 처리를 흉내 낸 근사치예요. 설정은 이 기기에 기억돼요.</p>
 </section>
 </div>
@@ -323,13 +331,47 @@ function sample(){
 
 
 let exifT=null;
+Object.assign(DEF,{ap:0,fsz:30,fx:.5,fy:.5});for(const k of['ap','fsz','fx','fy'])if(S[k]==null)S[k]=DEF[k];
+
+const APK=[0,.005,.009,.015];
+function box(a,t,w,h,r){const iv=1/(2*r+1);
+ for(let y=0;y<h;y++){const o=y*w;let s=0;for(let k=-r;k<=r;k++)s+=a[o+(k<0?0:k>w-1?w-1:k)];
+  for(let x=0;x<w;x++){t[x]=s;const xa=x+r+1,xb=x-r;s+=a[o+(xa>w-1?w-1:xa)]-a[o+(xb<0?0:xb)]}
+  for(let x=0;x<w;x++)a[o+x]=t[x]*iv}
+ for(let x=0;x<w;x++){let s=0;for(let k=-r;k<=r;k++)s+=a[(k<0?0:k>h-1?h-1:k)*w+x];
+  for(let y=0;y<h;y++){t[y]=s;const ya=y+r+1,yb=y-r;s+=a[(ya>h-1?h-1:ya)*w+x]-a[(yb<0?0:yb)*w+x]}
+  for(let y=0;y<h;y++)a[y*w+x]=t[y]*iv}}
+function blurID(id,w,h,r){
+ const n=w*h,d=id.data,P=[new Float32Array(n),new Float32Array(n),new Float32Array(n)],t=new Float32Array(Math.max(w,h));
+ for(let i=0,p=0;i<n;i++,p+=4){const a=d[p]/255,b=d[p+1]/255,c=d[p+2]/255,q=Math.max(0,(.299*a+.587*b+.114*c-.7)/.3),k=1+2.5*q*q;P[0][i]=a*a*k;P[1][i]=b*b*k;P[2][i]=c*c*k}
+ const rb=Math.max(1,Math.round(r/1.6));
+ for(const a of P)for(let i=0;i<3;i++)box(a,t,w,h,rb);
+ const out=new ImageData(w,h),o=out.data;
+ for(let i=0,p=0;i<n;i++,p+=4){o[p]=Math.sqrt(P[0][i])*255;o[p+1]=Math.sqrt(P[1][i])*255;o[p+2]=Math.sqrt(P[2][i])*255;o[p+3]=255}
+ return out}
+function fmask(xn,yn,W,H){const L=Math.max(W,H),dx=(xn-S.fx)*W/L,dy=(yn-S.fy)*H/L,d=Math.sqrt(dx*dx+dy*dy),r0=S.fsz/100*.5,b=.1+r0*.8;let t=(d-r0)/b;t=t<0?0:t>1?1:t;return t*t*(3-2*t)}
+function makeBlurs(id,w,h){const R=Math.max(w,h)*APK[S.ap];return[blurID(id,w,h,R*.4),blurID(id,w,h,R)]}
+function blurMix(b1,b2,w,h){const out=new ImageData(w,h),o=out.data,p1=b1.data,p2=b2.data;
+ for(let y=0,p=0;y<h;y++)for(let x=0;x<w;x++,p+=4){let a=(fmask((x+.5)/w,(y+.5)/h,w,h)-.5)*2;a=a<0?0:a;
+  o[p]=p1[p]+(p2[p]-p1[p])*a;o[p+1]=p1[p+1]+(p2[p+1]-p1[p+1])*a;o[p+2]=p1[p+2]+(p2[p+2]-p1[p+2])*a;o[p+3]=255}
+ return out}
+function mixFocus(src,w,h,bm){const out=new ImageData(w,h),o=out.data,s=src.data,b=bm.data;
+ for(let y=0,p=0;y<h;y++)for(let x=0;x<w;x++,p+=4){let a=fmask((x+.5)/w,(y+.5)/h,w,h)*2;a=a>1?1:a;
+  o[p]=s[p]+(b[p]-s[p])*a;o[p+1]=s[p+1]+(b[p+1]-s[p+1])*a;o[p+2]=s[p+2]+(b[p+2]-s[p+2])*a;o[p+3]=255}
+ return out}
+let bcache=null;
+function focusSrc(){
+ if(!S.ap)return srcPrev.img;const w=cv.width,h=cv.height;
+ if(!bcache||bcache.k!==S.ap||bcache.src!==srcPrev)bcache={k:S.ap,src:srcPrev,b:makeBlurs(srcPrev.img,w,h)};
+ return mixFocus(srcPrev.img,w,h,blurMix(bcache.b[0],bcache.b[1],w,h))}
+
 let thumbSrc=null,thumbT=0;
 function draw(){
  if(!srcPrev)return;
  if(orig){ctx.putImageData(srcPrev.img,0,0);return}
  if(pending)return;pending=true;$('dev').classList.add('on');
  requestAnimationFrame(()=>{setTimeout(()=>{
-  ctx.putImageData(render(srcPrev.img,cv.width,cv.height,srcPrev.scale),0,0);
+  ctx.putImageData(render(focusSrc(),cv.width,cv.height,srcPrev.scale),0,0);
   pending=false;$('dev').classList.remove('on');queueThumbs()},0)})}
 function queueThumbs(){clearTimeout(thumbT);thumbT=setTimeout(drawThumbs,160)}
 function drawThumbs(){
@@ -348,23 +390,40 @@ function loadCanvas(source,w,h){
 
 const reel=$('reel');
 reel.innerHTML=SIMS.map((s,i)=>`<button class="fr" type="button" data-id="${s.id}" data-i="${i}"><canvas width="176" height="120"></canvas><b>${s.n}</b><span>${s.k}</span></button>`).join('');
-const SEG={grain:['끔','약하게','강하게'],gsize:['입자 작게','입자 크게'],cce:['끔','약하게','강하게'],ccb:['끔','약하게','강하게']};
+const SEG={ap:['끔','F4','F2.8','F2'],grain:['끔','약하게','강하게'],gsize:['입자 작게','입자 크게'],cce:['끔','약하게','강하게'],ccb:['끔','약하게','강하게']};
 document.querySelectorAll('.seg').forEach(el=>{const k=el.dataset.k;el.innerHTML=SEG[k].map((t,i)=>`<button type="button" data-v="${i}">${t}</button>`).join('');
  el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S[k]=+b.dataset.v;sync();draw()})});
-const RNG=['hl','sh','col','wr','wb','ev','vig'];
-const fmt=(k,v)=>k==='ev'?(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1):k==='vig'?String(v):(v>0?'+':v<0?'−':'±')+Math.abs(v);
+const RNG=['hl','sh','col','wr','wb','ev','vig','fsz'];
+const fmt=(k,v)=>k==='ev'?(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1):k==='vig'?String(v):k==='fsz'?v+'%':(v>0?'+':v<0?'−':'±')+Math.abs(v);
 RNG.forEach(k=>$(k).addEventListener('input',e=>{S[k]=+e.target.value;sync();draw()}));
 function sync(){
  RNG.forEach(k=>{$(k).value=S[k];const o=$('o_'+k);o.textContent=fmt(k,S[k]);o.classList.toggle('z',!S[k])});
  document.querySelectorAll('.seg').forEach(el=>el.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S[el.dataset.k])));
  let idx=0;reel.querySelectorAll('.fr').forEach((b,i)=>{const on=b.dataset.id===S.sim;b.setAttribute('aria-pressed',on);if(on)idx=i});
  $('epName').textContent=SIMS[idx].n;$('epNo').textContent='▸ '+String(idx+1).padStart(2,'0');
- $('chip').classList.toggle('on',orig);
+ $('chip').classList.toggle('on',orig);$('stage').classList.toggle('focus',!!S.ap);$('fsz').disabled=!S.ap;
  try{localStorage.setItem('fsim',JSON.stringify(S))}catch(e){}}
 function pick(id,scroll){S.sim=id;sync();draw();if(scroll){const b=reel.querySelector(`[data-id="${id}"]`);b.focus();b.scrollIntoView({block:'nearest',inline:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}}
 reel.addEventListener('click',e=>{const b=e.target.closest('.fr');if(b)pick(b.dataset.id)});
 reel.addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;e.preventDefault();const i=SIMS.findIndex(x=>x.id===S.sim);pick(SIMS[(i+(e.key==='ArrowRight'?1:SIMS.length-1))%SIMS.length].id,true)});
-$('reset').addEventListener('click',()=>{S={...DEF,sim:S.sim};sync();draw()});
+function showAF(){const st=$('stage').getBoundingClientRect(),c=cv.getBoundingClientRect(),af=$('af');
+ af.style.left=(c.left-st.left+S.fx*c.width)+'px';af.style.top=(c.top-st.top+S.fy*c.height)+'px';
+ af.classList.add('on');clearTimeout(showAF.t);showAF.t=setTimeout(()=>af.classList.remove('on'),1400)}
+cv.addEventListener('click',e=>{if(!S.ap||orig)return;const c=cv.getBoundingClientRect();
+ S.fx=Math.min(1,Math.max(0,(e.clientX-c.left)/c.width));S.fy=Math.min(1,Math.max(0,(e.clientY-c.top)/c.height));sync();draw();showAF()});
+document.querySelector('.seg[data-k=ap]').addEventListener('click',()=>{if(S.ap)setTimeout(showAF,50)});
+$('fsz').addEventListener('input',()=>showAF());
+const hist=[];let last=JSON.stringify(S);
+function commit(){const j=JSON.stringify(S);if(j!==last){hist.push(last);if(hist.length>60)hist.shift();last=j}uiUndo()}
+function uiUndo(){$('undo').disabled=$('undo2').disabled=!hist.length}
+function undo(){if(!hist.length)return;S=JSON.parse(hist.pop());last=JSON.stringify(S);sync();draw();uiUndo();toast('이전 단계로 돌아갔어요')}
+$('undo').addEventListener('click',undo);$('undo2').addEventListener('click',undo);
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){e.preventDefault();undo()}});
+RNG.forEach(k=>$(k).addEventListener('change',commit));
+document.querySelectorAll('.seg').forEach(el=>el.addEventListener('click',commit));
+reel.addEventListener('click',commit);reel.addEventListener('keyup',commit);
+cv.addEventListener('click',commit);
+$('reset').addEventListener('click',()=>{S={...DEF,sim:S.sim};sync();draw();commit()});
 const setOrig=v=>{orig=v;sync();draw()};
 const hold=$('hold');
 hold.addEventListener('pointerdown',e=>{e.preventDefault();setOrig(true)});
@@ -383,8 +442,13 @@ function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');cl
 let dl=null;
 (async()=>{try{if(window.claude&&claude.use)dl=await claude.use('downloads')}catch(e){}})();
 function fullBlob(){
- const{source,w,h}=srcFull,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
- x.drawImage(source,0,0,w,h);x.putImageData(render(x.getImageData(0,0,w,h),w,h,1),0,0);
+ const{source}=srcFull,k=Math.min(1,Math.sqrt(16e6/(srcFull.w*srcFull.h))),w=Math.round(srcFull.w*k),h=Math.round(srcFull.h*k);
+ const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+ x.drawImage(source,0,0,w,h);let id=x.getImageData(0,0,w,h);
+ if(S.ap){const sk=Math.min(1,1200/Math.max(w,h)),sw=Math.round(w*sk),sh=Math.round(h*sk),sc=document.createElement('canvas');sc.width=sw;sc.height=sh;const sx=sc.getContext('2d');
+  sx.drawImage(source,0,0,sw,sh);const[b1,b2]=makeBlurs(sx.getImageData(0,0,sw,sh),sw,sh);sx.putImageData(blurMix(b1,b2,sw,sh),0,0);
+  x.imageSmoothingQuality='high';x.drawImage(sc,0,0,w,h);id=mixFocus(id,w,h,x.getImageData(0,0,w,h))}
+ x.putImageData(render(id,w,h,k),0,0);
  return new Promise(r=>c.toBlob(r,'image/jpeg',.94)).then(async b=>exifT?new Blob([EX.insert(await b.arrayBuffer(),exifT)],{type:'image/jpeg'}):b)}
 $('save').addEventListener('click',async()=>{
  if(!srcFull)return;const btn=$('save');btn.disabled=true;$('dev').classList.add('on');
@@ -400,7 +464,7 @@ $('save').addEventListener('click',async()=>{
  btn.disabled=false;$('dev').classList.remove('on')});
 $('close').addEventListener('click',()=>{$('sheet').classList.remove('on');URL.revokeObjectURL($('outimg').src)});
 
-sync();sample();
+sync();uiUndo();sample();
 requestAnimationFrame(()=>{const b=reel.querySelector('[aria-pressed=true]');if(b)b.scrollIntoView({block:'nearest',inline:'center'})});
 }
 </script>
