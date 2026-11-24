@@ -2,10 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>필름 시뮬레이션 필터</title>
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#121110">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -14,165 +14,286 @@
 <link rel="icon" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* VOICE: tactile and analog: a camera in your hands, a roll of film on the table.
-   IDEA: a rangefinder body: a brushed-silver top plate with the shutter button, a film frame as the viewfinder, a contact strip of film sims.
-   PICTURE: your photo printed on a film frame with sprocket holes and orange edge print; a strip of frames shows each sim on the same photo.
-   COLOUR and TYPE: black leatherette, brushed aluminium, edge-print orange, one red shutter; Barlow Condensed for engraving and edge print, Noto Sans KR for labels.
-   LAYOUT: plate, frame and strip on top; dial panel below, or beside it above 900px. One palette in light and dark, like the camera itself. */
-:root{color-scheme:dark;--ink:#ece8df;--mut:#9a958b;--rebate:#0b0a09;--edge:#f2a53c;--red:#d63b2c;--line:#2d2b28;
---leather:#171615;--steel:#cfcdc7;
---grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
---holes:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='14'%3E%3Crect x='5' y='3' width='12' height='8' rx='2' fill='%23e9e4d8' fill-opacity='.85'/%3E%3C/svg%3E");
---fh:"Barlow Condensed","Noto Sans KR",sans-serif}
+/* VOICE: quiet and exact, like a camera's own screen: the photo speaks, the chrome whispers.
+   IDEA: a phone camera app: black ground, thin white lines, controls only where your thumb is.
+   PICTURE: the photo itself, as large as the screen allows, with small overlay controls on its corners.
+   COLOUR and TYPE: pure black, white, greys; one yellow only for the focus frame. Noto Sans KR 400/500, small and light.
+   LAYOUT: top bar, photo, one tool panel, tab bar at the thumb. Above 900px the panel moves to a right column. */
+:root{color-scheme:dark;--bg:#000;--ink:#f2f2f2;--mut:#8b8b8b;--dim:#5a5a5a;--line:#1f1f1f;--chip:#161616;--af:#ffd23f}
 :root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
-*{box-sizing:border-box;min-width:0}
-body{margin:0;color:var(--ink);font:16px/1.5 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip;
- background:var(--grain),radial-gradient(120% 80% at 50% 0,#2a2724,#0f0e0d 70%);background-color:#121110}
-.wrap{max-width:1240px;margin:0 auto;padding:clamp(12px,3vw,32px) max(3vw,10px) 48px}
-.grid{display:grid;gap:18px}
-@media(min-width:900px){.grid{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:start}.dials{position:sticky;top:16px}}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 "Noto Sans KR",-apple-system,system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,.tbtn:focus-within{outline:1.5px solid #fff;outline-offset:2px;border-radius:8px}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
-/* top plate */
-.body{border-radius:22px 22px 14px 14px;overflow:hidden;box-shadow:0 30px 60px -30px #000,0 0 0 1px #000}
-.plate{position:relative;display:flex;align-items:center;gap:12px;padding:16px clamp(14px,3vw,24px);color:#1c1b19;
- background:repeating-linear-gradient(90deg,#0000 0 2px,#ffffff14 2px 3px),linear-gradient(180deg,#f1f0ec,#c9c7c1 55%,#a9a7a1);
- border-bottom:2px solid #6d6b66}
-.plate h1{margin:0;font:700 clamp(24px,4.6vw,36px)/1 var(--fh);letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 0 #fff9,0 -1px 0 #0003}
-.plate h1 small{display:block;font:500 13px/1.3 "Noto Sans KR",sans-serif;letter-spacing:0;text-transform:none;color:#4a4843;text-shadow:none;margin-top:4px}
-.ctl{margin-left:auto;display:flex;align-items:center;gap:10px}
-.knob{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #8d8b85;font:600 15px/1 var(--fh);letter-spacing:.06em;text-transform:uppercase;color:#1c1b19;cursor:pointer;
- background:repeating-linear-gradient(90deg,#0000 0 1px,#0000001a 1px 2px),linear-gradient(#fbfaf7,#bebcb6);box-shadow:inset 0 1px 0 #fff,0 2px 4px #0005;display:inline-flex;align-items:center;position:relative}
-.knob input{position:absolute;width:1px;height:1px;opacity:0}
-.shutter{width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;flex:none;position:relative;color:#fff;font:700 12px/1 var(--fh);letter-spacing:.08em;
- background:radial-gradient(circle at 50% 38%,#ef5a49,var(--red) 55%,#8c1f15);box-shadow:0 0 0 5px #b7b5af,0 0 0 6px #6d6b66,0 4px 10px #0007,inset 0 2px 2px #fff5}
-.shutter:active{transform:translateY(1px);box-shadow:0 0 0 5px #b7b5af,0 0 0 6px #6d6b66,0 1px 3px #0007,inset 0 2px 6px #0006}
-.shutter:disabled{filter:saturate(.3)}
+.app{height:100%;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding-top:env(safe-area-inset-top)}
+.top{display:flex;align-items:center;gap:6px;height:52px;padding:0 max(10px,env(safe-area-inset-left)) 0 max(10px,env(safe-area-inset-right))}
+.tbtn{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;font-size:14px;color:var(--ink)}
+.tbtn.q{color:var(--mut)}
+.tbtn input{position:absolute;width:1px;height:1px;opacity:0}
+.name{flex:1;text-align:center;font-size:13px;color:var(--mut);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name b{color:var(--ink);font-weight:500}
 
-/* film frame */
-.leather{background:var(--grain),#151413;padding:clamp(10px,2vw,18px)}
-.frame{position:relative;background:var(--rebate);padding:38px 10px;border-radius:3px}
-.frame::before,.frame::after,.strip::before,.strip::after{content:"";position:absolute;left:0;right:0;height:14px;background:var(--holes) repeat-x;background-size:22px 14px;opacity:.9}
-.frame::before,.strip::before{top:6px}.frame::after,.strip::after{bottom:6px}
-.ep{position:absolute;left:14px;right:14px;display:flex;justify-content:space-between;font:italic 600 12px/1 var(--fh);letter-spacing:.14em;color:var(--edge);text-transform:uppercase;pointer-events:none;z-index:1}
-.ep.t{top:22px}.ep.b{bottom:22px}.ep span{line-height:12px}
-.ep span{background:var(--rebate);padding:0 6px}
-.stage{position:relative;display:grid;place-items:center;min-height:240px;background:#000;overflow:hidden}
-.stage canvas{display:block;max-width:100%;max-height:66vh;width:auto;height:auto}
-.chip{position:absolute;right:10px;top:10px;padding:6px 10px;border-radius:999px;background:#000b;color:#fff;font:600 13px/1 var(--fh);letter-spacing:.08em;opacity:0;transition:opacity .15s}
-.chip.on{opacity:1}
-.dev{position:absolute;left:10px;top:10px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);opacity:0;transition:opacity .15s}
-.dev.on{opacity:1}
+.view{position:relative;overflow:hidden;touch-action:manipulation}
+.view canvas{position:absolute;inset:6px 0;width:100%;height:calc(100% - 12px);object-fit:contain;display:block}
+.ov{position:absolute;bottom:14px;display:flex;gap:8px}
+.ov.l{left:12px}.ov.r{right:12px}
+.rb{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.5);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.28);color:#fff;transition:opacity .15s}
+.rb:disabled{opacity:.3;cursor:default}
+.rb svg.i{width:20px;height:20px}
+.rb.on{background:#fff;color:#000}
+.af{position:absolute;width:62px;height:62px;margin:-31px 0 0 -31px;border:1.5px solid var(--af);border-radius:3px;pointer-events:none;opacity:0;transform:scale(1.3);transition:opacity .2s,transform .2s}
+.af.on{opacity:1;transform:scale(1)}
+.badge{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:5px 11px;border-radius:99px;background:rgba(0,0,0,.55);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.25);font-size:12px;color:#fff;opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap}
+.badge.on{opacity:1}
 
-/* contact strip */
-.striphd{display:flex;justify-content:space-between;align-items:baseline;margin:18px 2px 8px;gap:8px}
-.striphd h2{margin:0;font:700 22px/1.1 var(--fh);letter-spacing:.04em;text-transform:uppercase}
-.striphd p{margin:0;color:var(--mut);font-size:13px}
-.strip{position:relative;background:var(--rebate);border-radius:3px;padding:26px 0}
-.reel{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 8px;scrollbar-width:none}
+.side{display:flex;flex-direction:column;border-top:.5px solid var(--line)}
+.panel{height:188px;overflow-y:auto;padding:6px 18px 4px;overscroll-behavior:contain;scrollbar-width:none}
+.panel::-webkit-scrollbar{display:none}
+.pane[hidden]{display:none}
+.tabs{display:flex;justify-content:space-around;padding:2px 8px calc(4px + env(safe-area-inset-bottom));border-top:.5px solid var(--line)}
+.tab{flex:1;min-height:48px;font-size:13px;color:var(--dim);position:relative}
+.tab[aria-selected=true]{color:var(--ink)}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:50%;bottom:7px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--ink)}
+
+.reel{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:14px 2px 6px;scrollbar-width:none}
 .reel::-webkit-scrollbar{display:none}
-.fr{flex:none;scroll-snap-align:center;width:128px;border:0;padding:0;background:none;color:var(--mut);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px}
-.fr canvas{width:128px;height:88px;display:block;background:#222;object-fit:cover;outline:2px solid #0000;outline-offset:2px;transition:outline-color .15s,transform .15s}
-.fr b{font:italic 600 13px/1.1 var(--fh);letter-spacing:.1em;text-transform:uppercase;color:#d8d2c4}
-.fr span{font-size:11.5px;line-height:1.2}
-.fr[aria-pressed=true] canvas{outline-color:var(--edge);transform:translateY(-2px)}
-.fr[aria-pressed=true] b{color:var(--edge)}
-.fr:focus-visible{outline:2px solid var(--edge);outline-offset:4px}
-.hint{color:var(--mut);font-size:13px;margin:10px 2px 0}
+.fr{flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:7px;scroll-snap-align:center}
+.fr canvas{width:72px;height:52px;border-radius:4px;object-fit:cover;background:#151515;display:block;outline:1.5px solid transparent;outline-offset:2px;transition:outline-color .15s}
+.fr span{font-size:11px;color:var(--mut);line-height:1.25;text-align:center;width:100%;overflow-wrap:anywhere}
+.fr[aria-pressed=true] canvas{outline-color:#fff}
+.fr[aria-pressed=true] span{color:var(--ink)}
+.sub{font-size:12px;color:var(--mut);text-align:center;margin:6px 0 0;min-height:17px}
 
-/* dial panel */
-.dials{background:var(--grain),linear-gradient(#1d1c1a,#141312);border:1px solid #000;box-shadow:inset 0 1px 0 #ffffff12,0 24px 50px -28px #000;border-radius:16px;padding:18px}
-.dials header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.dials h2{margin:0;font:700 22px/1.1 var(--fh);letter-spacing:.04em;text-transform:uppercase}
-.knob:disabled,.reset:disabled{opacity:.4;cursor:default}
-.reset{min-height:40px;padding:0 12px;border-radius:999px;border:1px solid #3a3835;background:#211f1d;color:var(--ink);font:500 13px/1 "Noto Sans KR",sans-serif;cursor:pointer}
-.row{padding:12px 0;border-top:1px solid var(--line)}
-.dials header+.row,.two>.row:first-child{border-top:0}
-.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 18px;border-top:1px solid var(--line)}
-.two .row{border-top:0}
-.lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;color:#cfc9bd}
-.lab output{font:600 22px/1 var(--fh);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
-.lab output.z{color:var(--mut)}
-.x{font-size:11.5px;color:var(--mut);margin-left:4px}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:36px;margin:2px 0 0;cursor:pointer;
- background:repeating-linear-gradient(90deg,#6d685f 0 1px,#0000 1px var(--tk,10%)) center/100% 8px no-repeat,linear-gradient(#2c2a27,#2c2a27) center/100% 2px no-repeat}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;border:1px solid #57544f;
- background:repeating-conic-gradient(#0000 0 6deg,#00000026 6deg 12deg),radial-gradient(circle at 40% 35%,#fbfaf6,#b9b7b1 70%,#8c8a84);box-shadow:0 2px 5px #000a}
-input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;border:1px solid #57544f;background:radial-gradient(circle at 40% 35%,#fbfaf6,#b9b7b1 70%,#8c8a84);box-shadow:0 2px 5px #000a}
-input[type=range]:focus-visible{outline:2px solid var(--edge);outline-offset:2px;border-radius:6px}
-.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
-.seg.n2{grid-template-columns:repeat(2,minmax(0,1fr))}.seg.n4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.af{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;transform:scale(1.25);background:linear-gradient(#fff,#fff) 0 0/14px 2px,linear-gradient(#fff,#fff) 0 0/2px 14px,linear-gradient(#fff,#fff) 100% 0/14px 2px,linear-gradient(#fff,#fff) 100% 0/2px 14px,linear-gradient(#fff,#fff) 0 100%/14px 2px,linear-gradient(#fff,#fff) 0 100%/2px 14px,linear-gradient(#fff,#fff) 100% 100%/14px 2px,linear-gradient(#fff,#fff) 100% 100%/2px 14px;background-repeat:no-repeat;filter:drop-shadow(0 0 2px #000)}
-.af.on{opacity:1;transform:scale(1)}.stage.focus canvas{cursor:crosshair}
-.tip{font-size:12.5px;color:var(--mut);margin:8px 0 0}
-.seg button{min-height:40px;border-radius:8px;border:1px solid #34322e;background:#1f1d1b;color:#bdb7aa;font:500 14px/1 "Noto Sans KR",sans-serif;cursor:pointer}
-.seg button[aria-pressed=true]{color:#1c1b19;border-color:#8d8b85;background:repeating-linear-gradient(90deg,#0000 0 2px,#ffffff1a 2px 3px),linear-gradient(#f1f0ec,#bdbbb5)}
-.seg button:focus-visible,.knob:focus-within,.knob:focus-visible,.shutter:focus-visible,.reset:focus-visible{outline:2px solid var(--edge);outline-offset:3px}
-.note{font-size:12.5px;color:var(--mut);margin:12px 0 0}
-.sheet{position:fixed;inset:0;background:#000e;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;z-index:9}
-.sheet.on{display:flex}
-.sheet img{max-width:100%;max-height:76vh;border:10px solid var(--rebate)}
-.sheet p{margin:0;text-align:center;font-size:15px}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#f1efe9;color:#1c1b19;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10}
+.sl{display:grid;grid-template-columns:76px minmax(0,1fr) 44px;align-items:center;gap:10px;min-height:52px}
+.sl label{font-size:13px;color:var(--mut)}
+.sl output{font-size:14px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sl output.z{color:var(--dim)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:36px;margin:0;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:var(--trk,#333)}
+input[type=range]::-moz-range-track{height:2px;border-radius:2px;background:var(--trk,#333)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-9px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:0}
+input[type=range]:disabled{opacity:.35}
+.sg{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:10px;min-height:52px}
+.sg>span{font-size:13px;color:var(--mut)}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pills button{flex:1;min-height:34px;padding:0 8px;border-radius:99px;font-size:13px;color:var(--mut);background:var(--chip)}
+.pills button[aria-pressed=true]{background:var(--ink);color:#000}
+.tip{font-size:12px;color:var(--mut);margin:4px 0 8px}
+
+.toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);padding:9px 15px;border-radius:99px;background:#f2f2f2;color:#000;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;white-space:nowrap}
 .toast.on{opacity:1}
-@media(max-width:520px){.plate{flex-wrap:wrap}.plate h1 small{display:none}.ep{font-size:10.5px}.fr{width:108px}.fr canvas{width:108px;height:74px}}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;z-index:9}
+.sheet.on{display:flex}
+.sheet img{max-width:100%;max-height:74vh;-webkit-user-select:auto;user-select:auto;-webkit-touch-callout:default}
+.sheet p{margin:0;font-size:14px;color:var(--mut)}
+.sheet button{min-height:44px;padding:0 22px;border-radius:99px;box-shadow:inset 0 0 0 .5px #555}
+
+@media(min-width:900px){
+ .app{grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:auto minmax(0,1fr)}
+ .top{grid-column:1/-1}
+ .side{border-top:0;border-left:.5px solid var(--line)}
+ .tabs{order:-1;border-top:0;border-bottom:.5px solid var(--line);padding-bottom:2px}
+ .panel{height:auto;flex:1;padding-top:14px}
+ .reel{flex-wrap:wrap;overflow:visible;gap:14px 10px}
+ .fr{width:76px}.fr canvas{width:76px;height:54px}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<div class="grid">
-<section>
- <div class="body">
-  <div class="plate">
-   <h1>Film Simulation<small>X100V 필름 시뮬레이션 필터</small></h1>
-   <div class="ctl">
-    <label class="knob">사진 열기<input type="file" id="file" accept="image/*"></label>
-    <button class="knob" id="undo" type="button" aria-label="이전 단계" title="이전 단계" style="padding:0 13px;font-size:20px">↶</button>
-    <button class="knob" id="hold" type="button">원본</button>
-    <button class="shutter" id="save" type="button" aria-label="저장">SAVE</button>
-   </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+ <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
+ <symbol id="i-cmp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" stroke="none"/></symbol>
+ <symbol id="i-open" viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m3 16 4-4 4 4 2-2 4 4"/><path d="M20 3v6M17 6h6"/></symbol>
+ <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></symbol>
+</svg>
+<div class="app">
+ <header class="top">
+  <button class="tbtn q" id="reset" type="button">초기화</button>
+  <div class="name" id="name"><b>CLASSIC CHROME</b></div>
+  <label class="tbtn" title="사진 열기"><svg class="i"><use href="#i-open"/></svg>열기<input type="file" id="file" accept="image/*"></label>
+  <button class="tbtn" id="save" type="button"><svg class="i"><use href="#i-save"/></svg>저장</button>
+ </header>
+ <main class="view" id="view">
+  <canvas id="cv" aria-label="보정된 사진 미리보기"></canvas>
+  <div class="af" id="af"></div>
+  <div class="badge" id="badge"></div>
+  <div class="ov l">
+   <button class="rb" id="undo" type="button" aria-label="이전 단계"><svg class="i"><use href="#i-undo"/></svg></button>
+   <button class="rb" id="redo" type="button" aria-label="다시 실행"><svg class="i"><use href="#i-redo"/></svg></button>
   </div>
-  <div class="leather">
-   <div class="frame">
-    <div class="ep t"><span id="epName">CLASSIC CHROME</span><span>▸ 24A</span></div>
-    <div class="stage" id="stage"><canvas id="cv" aria-label="보정된 사진 미리보기"></canvas><div class="af" id="af"></div><div class="dev" id="dev"></div><div class="chip" id="chip">원본</div></div>
-    <div class="ep b"><span>X100V · 400</span><span id="epNo">▸ 04</span></div>
-   </div>
+  <div class="ov r"><button class="rb" id="hold" type="button" aria-label="누르고 있는 동안 원본 보기"><svg class="i"><use href="#i-cmp"/></svg></button></div>
+ </main>
+ <section class="side">
+  <div class="panel" id="panel">
+   <div class="pane" data-p="film"><div class="reel" id="reel" role="group" aria-label="필름 시뮬레이션"></div><p class="sub" id="simk"></p></div>
+   <div class="pane" data-p="tone" hidden></div>
+   <div class="pane" data-p="color" hidden></div>
+   <div class="pane" data-p="fx" hidden></div>
+   <div class="pane" data-p="focus" hidden></div>
   </div>
- </div>
- <div class="striphd"><h2>Film</h2><p>같은 사진으로 미리 보기</p></div>
- <div class="strip"><div class="reel" id="reel" role="group" aria-label="필름 시뮬레이션"></div></div>
- <p class="hint" id="hint">샘플 이미지예요. 사진 열기로 내 사진을 불러오세요. 원본 버튼은 누르고 있는 동안 원본을 보여줘요.</p>
-</section>
-<section class="dials" aria-label="화질 설정">
- <header><h2>Image Quality</h2><div style="display:flex;gap:6px"><button class="reset" id="undo2" type="button">↶ 이전 단계</button><button class="reset" id="reset" type="button">초기화</button></div></header>
- <div class="two">
-  <div class="row"><div class="lab">하이라이트 톤 <output id="o_hl"></output></div><input type="range" id="hl" min="-2" max="4" step="0.5" style="--tk:calc(100%/12)"></div>
-  <div class="row"><div class="lab">섀도 톤 <output id="o_sh"></output></div><input type="range" id="sh" min="-2" max="4" step="0.5" style="--tk:calc(100%/12)"></div>
- </div>
- <div class="row"><div class="lab">컬러 <output id="o_col"></output></div><input type="range" id="col" min="-4" max="4" step="1" style="--tk:calc(100%/8)"></div>
- <div class="row"><div class="lab">그레인 효과</div><div class="seg" data-k="grain"></div><div class="seg n2" data-k="gsize"></div></div>
- <div class="row"><div class="lab">컬러 크롬 효과</div><div class="seg" data-k="cce"></div></div>
- <div class="row"><div class="lab">컬러 크롬 FX 블루</div><div class="seg" data-k="ccb"></div></div>
- <div class="two">
-  <div class="row"><div class="lab">WB 시프트 R <output id="o_wr"></output></div><input type="range" id="wr" min="-9" max="9" step="1" style="--tk:calc(100%/18)"></div>
-  <div class="row"><div class="lab">WB 시프트 B <output id="o_wb"></output></div><input type="range" id="wb" min="-9" max="9" step="1" style="--tk:calc(100%/18)"></div>
- </div>
- <div class="two">
-  <div class="row"><div class="lab"><span>노출<span class="x">추가</span></span> <output id="o_ev"></output></div><input type="range" id="ev" min="-2" max="2" step="0.1" style="--tk:calc(100%/12)"></div>
-  <div class="row"><div class="lab"><span>비네팅<span class="x">추가</span></span> <output id="o_vig"></output></div><input type="range" id="vig" min="0" max="10" step="1" style="--tk:10%"></div>
- </div>
- <div class="row" style="border-top:1px solid var(--line)"><div class="lab"><span>아웃포커싱<span class="x">추가</span></span></div><div class="seg n4" data-k="ap"></div>
-  <div class="lab" style="margin-top:12px">초점 범위 <output id="o_fsz"></output></div><input type="range" id="fsz" min="5" max="80" step="5" style="--tk:calc(100%/15)">
-  <p class="tip">사진을 탭하면 그 위치에 초점이 맞아요. 바깥으로 갈수록 흐려져요.</p></div>
- <p class="note">카메라 내부 처리를 흉내 낸 근사치예요. 설정은 이 기기에 기억돼요.</p>
-</section>
+  <nav class="tabs" role="tablist" id="tabs">
+   <button class="tab" role="tab" data-t="film" aria-selected="true">필름</button>
+   <button class="tab" role="tab" data-t="tone" aria-selected="false">톤</button>
+   <button class="tab" role="tab" data-t="color" aria-selected="false">컬러</button>
+   <button class="tab" role="tab" data-t="fx" aria-selected="false">효과</button>
+   <button class="tab" role="tab" data-t="focus" aria-selected="false">초점</button>
+  </nav>
+ </section>
 </div>
-</div>
-<div class="sheet" id="sheet"><img id="outimg" alt="보정된 사진"><p>이미지를 길게 눌러 사진에 저장하세요</p><button class="knob" id="close" type="button">닫기</button></div>
-<div class="toast" id="toast"></div>
+<div class="sheet" id="sheet"><img id="outimg" alt="보정된 사진"><p>이미지를 길게 눌러 사진에 저장하세요</p><button id="close" type="button">닫기</button></div>
+<div class="toast" id="toast" role="status"></div>
+<script type="text/plain" id="engine">
+const SIMS=[
+ {id:'provia',sat:1,con:.12},
+ {id:'velvia',sat:1.38,con:.3,bands:[['b','c',-.05,1.12],['g','y',.08,1.15],['r','r',0,1.1]]},
+ {id:'astia',sat:1.1,con:.04,bands:[['r','y',.08,.95]],hi:[.012,.006,0]},
+ {id:'cc',sat:.72,con:.26,blk:.025,wht:.03,bands:[['r','r',0,.78],['g','y',.22,.8],['b','c',.18,.85]],sh:[-.012,.006,.018],hi:[.015,.008,-.012]},
+ {id:'pnh',sat:.88,con:.2,bands:[['r','y',.06,.92]]},
+ {id:'pns',sat:.8,con:-.02,blk:.015,bands:[['r','y',.05,.9]]},
+ {id:'cn',sat:.82,con:.34,blk:.02,wht:.03,bands:[['g','c',.25,.85],['r','y',.18,.9],['b','c',.1,.9]],sh:[-.03,.012,.008],hi:[.02,-.006,.004]},
+ {id:'et',sat:.6,con:-.16,blk:.04,wht:.03,bands:[['g','c',.12,.85]],sh:[-.01,.006,.012]},
+ {id:'ebb',sat:.32,con:.45,blk:.01},
+ {id:'acros',mono:1,con:.3,grain:.5},
+ {id:'mono',mono:1,con:.15},
+ {id:'sepia',mono:1,con:.08,tint:[.07,.015]}
+];
+const yiq=(r,g,b)=>[.596*r-.274*g-.322*b,.211*r-.523*g+.312*b];
+const ang=c=>{const q=yiq(c[0],c[1],c[2]);return Math.atan2(q[1],q[0])};
+const HA={r:ang([1,.1,.1]),y:ang([1,.85,.1]),g:ang([.2,.8,.2]),c:ang([.1,.8,.9]),b:ang([.15,.3,1])};
+const wrapA=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
+const GT=256,tile=new Float32Array(GT*GT);
+{const raw=new Float32Array(GT*GT);for(let i=0;i<raw.length;i++)raw[i]=(Math.random()+Math.random()+Math.random()-1.5)*1.4;
+ for(let y=0;y<GT;y++)for(let x=0;x<GT;x++){let s=0;for(let dy=-1;dy<2;dy++)for(let dx=-1;dx<2;dx++)s+=raw[((y+dy+GT)%GT)*GT+(x+dx+GT)%GT]*(dx||dy?.6:1.6);tile[y*GT+x]=s/4.4}}
+
+function toneLUT(sim,S){
+ const L=new Float32Array(1024),con=sim.con||0,blk=sim.blk||0,wht=sim.wht||0;
+ for(let i=0;i<1024;i++){let y=i/1023;
+  y=y+con*(y*y*(3-2*y)-y);
+  y-=S.sh*.045*(1-y)*(1-y)*y*6.75;
+  y+=S.hl*.045*y*y*(1-y)*6.75;
+  y=blk+y*(1-blk-wht);
+  L[i]=y<0?0:y>1?1:y}
+ return L}
+
+// colour pipeline baked into a 33^3 LUT: white balance, exposure, film sim, colour, colour chrome, tone, split tone
+function buildCLUT(S,simId,N){
+ const sim=SIMS.find(x=>x.id===simId)||SIMS[3],M=N-1,L=new Float32Array(N*N*N*3),lut=toneLUT(sim,S),ev=Math.pow(2,S.ev);
+ const wr=1+S.wr*.012,wb=1+S.wb*.012,wg=1-(S.wr+S.wb)*.003,sat=(sim.sat||1)*(1+S.col*.1);
+ const bands=(sim.bands||[]).map(b=>({c:HA[b[0]],dh:wrapA(HA[b[1]]-HA[b[0]])*b[2],m:b[3]}));
+ const cce=[0,.12,.22][S.cce],ccb=[0,.14,.26][S.ccb],sh=sim.sh||[0,0,0],hi=sim.hi||[0,0,0],tint=sim.tint,BW=.65;
+ let o=0;
+ for(let bi=0;bi<N;bi++)for(let gi=0;gi<N;gi++)for(let ri=0;ri<N;ri++){
+  let r=ri/M*wr*ev,g=gi/M*wg*ev,b=bi/M*wb*ev;
+  let Y=.299*r+.587*g+.114*b,I=.596*r-.274*g-.322*b,Q=.211*r-.523*g+.312*b;
+  if(sim.mono){I=0;Q=0}else{
+   let C=Math.sqrt(I*I+Q*Q);
+   if(C>1e-4){let h=Math.atan2(Q,I),dh=0,m=1,bw=0;
+    for(const k of bands){const w=1-Math.abs(wrapA(h-k.c))/BW;if(w>0){dh+=k.dh*w;m*=1+(k.m-1)*w}}
+    if(ccb){const w=1-Math.abs(wrapA(h-HA.b))/BW;if(w>0)bw=w}
+    const cn=Math.min(C/.28,1);
+    Y*=1-cce*cn*cn-ccb*bw*cn;
+    C*=sat*m;h+=dh;I=C*Math.cos(h);Q=C*Math.sin(h)}}
+  Y=lut[Math.max(0,Math.min(1023,(Y*1023)|0))];
+  if(tint){const t=4*Y*(1-Y)+.25;I=tint[0]*t;Q=tint[1]*t}
+  r=Y+.956*I+.621*Q;g=Y-.272*I-.647*Q;b=Y-1.106*I+1.703*Q;
+  const s2=(1-Y)*(1-Y),h2=Y*Y;
+  L[o++]=r+sh[0]*s2+hi[0]*h2;L[o++]=g+sh[1]*s2+hi[1]*h2;L[o++]=b+sh[2]*s2+hi[2]*h2}
+ return L}
+
+function apply(src,W,Hh,gscale,S,L,simId,N){
+ const d=src.data,out=new ImageData(W,Hh),o=out.data,N1=N*3,N2=N*N*3,f=(N-1)/255,MX=N-2;
+ const gAmt=[0,.035,.065][S.grain]+(simId==='acros'?.012:0),gs=Math.max(1,(S.gsize?2.2:1.1)*gscale),vig=S.vig*.06;
+ for(let y=0,p=0;y<Hh;y++){const vy=(y/Hh-.5)*2,gy=(((y/gs)|0)&255)*GT;
+  for(let x=0;x<W;x++,p+=4){
+   const fr=d[p]*f,fg=d[p+1]*f,fb=d[p+2]*f;
+   let ri=fr|0,gi=fg|0,bi=fb|0;if(ri>MX)ri=MX;if(gi>MX)gi=MX;if(bi>MX)bi=MX;
+   const tr=fr-ri,tg=fg-gi,tb=fb-bi,i0=bi*N2+gi*N1+ri*3,i2=i0+N1,i4=i0+N2,i6=i4+N1;
+   let a,b2,c,e,c0,c1,r,g,b;
+   a=L[i0]+(L[i0+3]-L[i0])*tr;b2=L[i2]+(L[i2+3]-L[i2])*tr;c=L[i4]+(L[i4+3]-L[i4])*tr;e=L[i6]+(L[i6+3]-L[i6])*tr;
+   c0=a+(b2-a)*tg;c1=c+(e-c)*tg;r=c0+(c1-c0)*tb;
+   a=L[i0+1]+(L[i0+4]-L[i0+1])*tr;b2=L[i2+1]+(L[i2+4]-L[i2+1])*tr;c=L[i4+1]+(L[i4+4]-L[i4+1])*tr;e=L[i6+1]+(L[i6+4]-L[i6+1])*tr;
+   c0=a+(b2-a)*tg;c1=c+(e-c)*tg;g=c0+(c1-c0)*tb;
+   a=L[i0+2]+(L[i0+5]-L[i0+2])*tr;b2=L[i2+2]+(L[i2+5]-L[i2+2])*tr;c=L[i4+2]+(L[i4+5]-L[i4+2])*tr;e=L[i6+2]+(L[i6+5]-L[i6+2])*tr;
+   c0=a+(b2-a)*tg;c1=c+(e-c)*tg;b=c0+(c1-c0)*tb;
+   if(gAmt){const Y=.299*r+.587*g+.114*b,n=tile[gy+(((x/gs)|0)&255)]*gAmt*(.35+2.6*Y*(1-Y));r+=n;g+=n;b+=n}
+   if(vig){const vx=(x/W-.5)*2,dd=vx*vx+vy*vy-.35;if(dd>0){const k=1-vig*dd;r*=k;g*=k;b*=k}}
+   o[p]=r*255;o[p+1]=g*255;o[p+2]=b*255;o[p+3]=255}}
+ return out}
+
+// focus blur
+const APK=[0,.005,.009,.015];
+function box(a,t,w,h,r){const iv=1/(2*r+1);
+ for(let y=0;y<h;y++){const o=y*w;let s=0;for(let k=-r;k<=r;k++)s+=a[o+(k<0?0:k>w-1?w-1:k)];
+  for(let x=0;x<w;x++){t[x]=s;const xa=x+r+1,xb=x-r;s+=a[o+(xa>w-1?w-1:xa)]-a[o+(xb<0?0:xb)]}
+  for(let x=0;x<w;x++)a[o+x]=t[x]*iv}
+ for(let x=0;x<w;x++){let s=0;for(let k=-r;k<=r;k++)s+=a[(k<0?0:k>h-1?h-1:k)*w+x];
+  for(let y=0;y<h;y++){t[y]=s;const ya=y+r+1,yb=y-r;s+=a[(ya>h-1?h-1:ya)*w+x]-a[(yb<0?0:yb)*w+x]}
+  for(let y=0;y<h;y++)a[y*w+x]=t[y]*iv}}
+function blurID(id,w,h,r){
+ const n=w*h,d=id.data,P=[new Float32Array(n),new Float32Array(n),new Float32Array(n)],t=new Float32Array(Math.max(w,h));
+ for(let i=0,p=0;i<n;i++,p+=4){const a=d[p]/255,b=d[p+1]/255,c=d[p+2]/255,q=Math.max(0,(.299*a+.587*b+.114*c-.7)/.3),k=1+2.5*q*q;P[0][i]=a*a*k;P[1][i]=b*b*k;P[2][i]=c*c*k}
+ const rb=Math.max(1,Math.round(r/1.6));
+ for(const a of P)for(let i=0;i<3;i++)box(a,t,w,h,rb);
+ const out=new ImageData(w,h),o=out.data;
+ for(let i=0,p=0;i<n;i++,p+=4){o[p]=Math.sqrt(P[0][i])*255;o[p+1]=Math.sqrt(P[1][i])*255;o[p+2]=Math.sqrt(P[2][i])*255;o[p+3]=255}
+ return out}
+function fmask(xn,yn,W,H,S){const L=Math.max(W,H),dx=(xn-S.fx)*W/L,dy=(yn-S.fy)*H/L,d=Math.sqrt(dx*dx+dy*dy),r0=S.fsz/100*.5,b=.1+r0*.8;let t=(d-r0)/b;t=t<0?0:t>1?1:t;return t*t*(3-2*t)}
+function makeBlurs(id,w,h,S){const R=Math.max(w,h)*APK[S.ap];return[blurID(id,w,h,R*.4),blurID(id,w,h,R)]}
+function blurMix(b1,b2,w,h,S){const out=new ImageData(w,h),o=out.data,p1=b1.data,p2=b2.data,M=maskFn(w,h,S),r0=M.r0,ib=1/M.b,dx2=M.dx2;
+ for(let y=0,p=0;y<h;y++){const dy2=M.row(y);for(let x=0;x<w;x++,p+=4){let t=(Math.sqrt(dx2[x]+dy2)-r0)*ib;t=t<0?0:t>1?1:t;let a=(t*t*(3-2*t)-.5)*2;a=a<0?0:a;
+  o[p]=p1[p]+(p2[p]-p1[p])*a;o[p+1]=p1[p+1]+(p2[p+1]-p1[p+1])*a;o[p+2]=p1[p+2]+(p2[p+2]-p1[p+2])*a;o[p+3]=255}}
+ return out}
+// mask m(x,y): 0 in focus .. 1 fully blurred; rows/cols precomputed
+function maskFn(W,H,S){const L=Math.max(W,H),dx2=new Float32Array(W),r0=S.fsz/100*.5,b=.1+r0*.8;
+ for(let x=0;x<W;x++){const d=((x+.5)/W-S.fx)*W/L;dx2[x]=d*d}
+ return{dx2,r0,b,row(y){const d=((y+.5)/H-S.fy)*H/L;return d*d}}}
+function mixFocus(src,w,h,bm,S){// bm may be smaller than src: sampled bilinearly only where needed
+ const out=new ImageData(w,h),o=out.data,s=src.data,b=bm.data,bw=bm.width,bh=bm.height,kx=bw/w,ky=bh/h,M=maskFn(w,h,S),r0=M.r0,ib=1/M.b,dx2=M.dx2;
+ for(let y=0,p=0;y<h;y++){const dy2=M.row(y);let fy=(y+.5)*ky-.5;if(fy<0)fy=0;let y0=fy|0;if(y0>bh-2)y0=Math.max(0,bh-2);const ty=Math.min(1,fy-y0),R0=y0*bw,R1=Math.min(bh-1,y0+1)*bw;
+  for(let x=0;x<w;x++,p+=4){let t=(Math.sqrt(dx2[x]+dy2)-r0)*ib;
+   if(t<=0){o[p]=s[p];o[p+1]=s[p+1];o[p+2]=s[p+2];o[p+3]=255;continue}
+   t=t>1?1:t;let a=t*t*(3-2*t)*2;a=a>1?1:a;
+   let fx=(x+.5)*kx-.5;if(fx<0)fx=0;let x0=fx|0;if(x0>bw-2)x0=Math.max(0,bw-2);const tx=Math.min(1,fx-x0),x1=Math.min(bw-1,x0+1);
+   const q0=(R0+x0)*4,q1=(R0+x1)*4,q2=(R1+x0)*4,q3=(R1+x1)*4;
+   for(let k=0;k<3;k++){const u=b[q0+k]+(b[q1+k]-b[q0+k])*tx,v=b[q2+k]+(b[q3+k]-b[q2+k])*tx,bv=u+(v-u)*ty;o[p+k]=s[p+k]+(bv-s[p+k])*a}
+   o[p+3]=255}}
+ return out}
+function upscale(src,W,H){const sw=src.width,sh=src.height,s=src.data,out=new ImageData(W,H),o=out.data,kx=sw/W,ky=sh/H;
+ for(let y=0,p=0;y<H;y++){let fy=(y+.5)*ky-.5;if(fy<0)fy=0;let y0=fy|0;if(y0>sh-2)y0=Math.max(0,sh-2);const ty=Math.min(1,fy-y0),r0=y0*sw,r1=Math.min(sh-1,y0+1)*sw;
+  for(let x=0;x<W;x++,p+=4){let fx=(x+.5)*kx-.5;if(fx<0)fx=0;let x0=fx|0;if(x0>sw-2)x0=Math.max(0,sw-2);const tx=Math.min(1,fx-x0),x1=Math.min(sw-1,x0+1);
+   const a=(r0+x0)*4,b=(r0+x1)*4,c=(r1+x0)*4,d=(r1+x1)*4;
+   for(let k=0;k<3;k++){const t=s[a+k]+(s[b+k]-s[a+k])*tx,u=s[c+k]+(s[d+k]-s[c+k])*tx;o[p+k]=t+(u-t)*ty}o[p+3]=255}}
+ return out}
+
+let P=null,HF=null,T=null,sc=1,tsc=1,bc=null,fcache={},cl={},ncl=0;
+function clutFor(S,sim,N){const key=N+sim+'|'+[S.hl,S.sh,S.col,S.cce,S.ccb,S.wr,S.wb,S.ev].join(',');
+ if(!cl[key]){if(++ncl>60){cl={};ncl=1}cl[key]=buildCLUT(S,sim,N)}return cl[key]}
+// preview focus: blur once at half size, cache the mixed result per focus setting
+function focused(src,S,tag){if(!S.ap)return src;const key=[S.ap,S.fx,S.fy,S.fsz].join(),c=fcache[tag];if(c&&c.key===key)return c.out;
+ const hw=HF.width,hh=HF.height;if(!bc||bc.ap!==S.ap)bc={ap:S.ap,b:makeBlurs(HF,hw,hh,S)};
+ const bm=blurMix(bc.b[0],bc.b[1],hw,hh,S);
+ const out=mixFocus(src,src.width,src.height,bm,S);fcache[tag]={key,out};return out}
+self.onmessage=e=>{const m=e.data;
+ if(m.type==='src'){P=m.prev;HF=m.half;T=m.thumb;sc=m.scale;tsc=m.tscale;bc=null;fcache={};self.postMessage({type:'ready'});return}
+ if(m.type==='render'){const S=m.S,low=m.q==='low',src=low?HF:P;
+  const out=apply(focused(src,S,low?'h':'p'),src.width,src.height,sc*(low?.5:1),S,clutFor(S,S.sim,low?17:33),S.sim,low?17:33);
+  self.postMessage({type:'frame',q:m.q,img:out},[out.data.buffer]);return}
+ if(m.type==='thumbs'){const S=m.S,res=m.ids.map(id=>({id,img:apply(T,T.width,T.height,tsc,S,clutFor(S,id,17),id,17)}));
+  self.postMessage({type:'thumbs',res},res.map(r=>r.img.data.buffer));return}
+ if(m.type==='export'){const S=m.S,img=m.img,w=img.width,h=img.height;let src=img;
+  if(S.ap){const sm=m.small,b=makeBlurs(sm,sm.width,sm.height,S);src=mixFocus(img,w,h,blurMix(b[0],b[1],sm.width,sm.height,S),S)}
+  const out=apply(src,w,h,m.k,S,clutFor(S,S.sim,33),S.sim,33);
+  self.postMessage({type:'export',img:out},[out.data.buffer])}};
+
+</script>
 <script>
 {
 // EXIF: read TIFF block from JPEG or HEIF, fix orientation, drop old thumbnail, insert into new JPEG
@@ -244,80 +365,141 @@ const EX=(()=>{
   return res}
  return{read,insert}})();
 
-const SIMS=[
- {id:'provia',n:'PROVIA',k:'스탠다드',sat:1,con:.12},
- {id:'velvia',n:'Velvia',k:'비비드',sat:1.38,con:.3,bands:[['b','c',-.05,1.12],['g','y',.08,1.15],['r','r',0,1.1]]},
- {id:'astia',n:'ASTIA',k:'소프트',sat:1.1,con:.04,bands:[['r','y',.08,.95]],hi:[.012,.006,0]},
- {id:'cc',n:'CLASSIC CHROME',k:'클래식 크롬',sat:.72,con:.26,blk:.025,wht:.03,bands:[['r','r',0,.78],['g','y',.22,.8],['b','c',.18,.85]],sh:[-.012,.006,.018],hi:[.015,.008,-.012]},
- {id:'pnh',n:'PRO Neg. Hi',k:'프로 네거티브 하이',sat:.88,con:.2,bands:[['r','y',.06,.92]]},
- {id:'pns',n:'PRO Neg. Std',k:'프로 네거티브 스탠다드',sat:.8,con:-.02,blk:.015,bands:[['r','y',.05,.9]]},
- {id:'cn',n:'CLASSIC Neg.',k:'클래식 네거티브',sat:.82,con:.34,blk:.02,wht:.03,bands:[['g','c',.25,.85],['r','y',.18,.9],['b','c',.1,.9]],sh:[-.03,.012,.008],hi:[.02,-.006,.004]},
- {id:'et',n:'ETERNA',k:'시네마',sat:.6,con:-.16,blk:.04,wht:.03,bands:[['g','c',.12,.85]],sh:[-.01,.006,.012]},
- {id:'ebb',n:'ETERNA BB',k:'블리치 바이패스',sat:.32,con:.45,blk:.01},
- {id:'acros',n:'ACROS',k:'흑백 · 고계조',mono:1,con:.3,grain:.5},
- {id:'mono',n:'MONOCHROME',k:'흑백',mono:1,con:.15},
- {id:'sepia',n:'SEPIA',k:'세피아',mono:1,con:.08,tint:[.07,.015]}
-];
-const DEF={sim:'cc',hl:0,sh:0,col:0,grain:0,gsize:0,cce:0,ccb:0,wr:0,wb:0,ev:0,vig:0};
-let S={...DEF};
-try{Object.assign(S,JSON.parse(localStorage.getItem('fsim')||'{}'))}catch(e){}
 const $=id=>document.getElementById(id);
-const cv=$('cv'),ctx=cv.getContext('2d',{willReadFrequently:true});
-let srcFull=null,srcPrev=null,orig=false,pending=false;
+const NAMES=[['provia','PROVIA','스탠다드'],['velvia','Velvia','비비드'],['astia','ASTIA','소프트'],['cc','CLASSIC CHROME','클래식 크롬'],['pnh','PRO Neg. Hi','프로 네거티브 하이'],['pns','PRO Neg. Std','프로 네거티브 스탠다드'],['cn','CLASSIC Neg.','클래식 네거티브'],['et','ETERNA','시네마'],['ebb','ETERNA BB','블리치 바이패스'],['acros','ACROS','흑백 고계조'],['mono','MONOCHROME','흑백'],['sepia','SEPIA','세피아']];
+const DEF={sim:'cc',hl:0,sh:0,col:0,grain:0,gsize:0,cce:0,ccb:0,wr:0,wb:0,ev:0,vig:0,ap:0,fsz:30,fx:.5,fy:.5};
+let S={...DEF};
+try{const s=JSON.parse(localStorage.getItem('fsim2')||'null')||JSON.parse(localStorage.getItem('fsim')||'{}');for(const k in DEF)if(typeof s[k]===typeof DEF[k])S[k]=s[k]}catch(e){}
+const SL={hl:['하이라이트',-2,4,.5],sh:['섀도',-2,4,.5],ev:['노출',-2,2,.1],col:['컬러',-4,4,1],wr:['WB R',-9,9,1],wb:['WB B',-9,9,1],vig:['비네팅',0,10,1],fsz:['초점 범위',5,80,5]};
+const SG={grain:['그레인',['끔','약하게','강하게']],gsize:['입자 크기',['작게','크게']],cce:['컬러 크롬',['끔','약하게','강하게']],ccb:['FX 블루',['끔','약하게','강하게']],ap:['아웃포커싱',['끔','F4','F2.8','F2']]};
+const PANES={tone:['hl','sh','ev'],color:['col','wr','wb'],fx:['grain','gsize','cce','ccb','vig'],focus:['ap','fsz']};
+const slHTML=k=>{const[l,mn,mx,st]=SL[k];return`<div class="sl"><label for="${k}" data-k="${k}">${l}</label><input type="range" id="${k}" min="${mn}" max="${mx}" step="${st}"><output id="o_${k}"></output></div>`};
+const sgHTML=k=>`<div class="sg"><span>${SG[k][0]}</span><div class="pills" data-k="${k}">${SG[k][1].map((t,i)=>`<button type="button" data-v="${i}">${t}</button>`).join('')}</div></div>`;
+for(const p in PANES)document.querySelector(`[data-p=${p}]`).innerHTML=PANES[p].map(k=>SL[k]?slHTML(k):sgHTML(k)).join('')+(p==='focus'?'<p class="tip">사진을 탭하면 그 위치에 초점이 맞아요. 바깥으로 갈수록 흐려져요.</p>':p==='tone'||p==='color'?'<p class="tip">이름을 두 번 누르면 0으로 돌아가요.</p>':'');
+const reel=$('reel');
+reel.innerHTML=NAMES.map(([id,n])=>`<button class="fr" type="button" data-id="${id}"><canvas width="144" height="104"></canvas><span>${n}</span></button>`).join('');
 
-// hue angles in YIQ space for reference colours
-const yiq=(r,g,b)=>[.596*r-.274*g-.322*b,.211*r-.523*g+.312*b];
-const ang=c=>{const[i,q]=yiq(...c);return Math.atan2(q,i)};
-const H={r:ang([1,.1,.1]),y:ang([1,.85,.1]),g:ang([.2,.8,.2]),c:ang([.1,.8,.9]),b:ang([.15,.3,1])};
-const wrapA=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
+const cv=$('cv'),ctx=cv.getContext('2d');
+const fc=document.createElement('canvas'),fctx=fc.getContext('2d');
+const oc=document.createElement('canvas'),octx=oc.getContext('2d');
+const lc=document.createElement('canvas'),lctx=lc.getContext('2d');
+let src=null,orig=false,exifT=null;
 
-// grain tile
-const GT=256,tile=new Float32Array(GT*GT);
-{const raw=new Float32Array(GT*GT);for(let i=0;i<raw.length;i++)raw[i]=(Math.random()+Math.random()+Math.random()-1.5)*1.4;
- for(let y=0;y<GT;y++)for(let x=0;x<GT;x++){let s=0;for(let dy=-1;dy<2;dy++)for(let dx=-1;dx<2;dx++)s+=raw[((y+dy+GT)%GT)*GT+(x+dx+GT)%GT]*(dx||dy?.6:1.6);tile[y*GT+x]=s/4.4}}
+// worker (falls back to the main thread when a worker can't start)
+const ENG=$('engine').textContent;let wk=null,fallen=false,ready=false,busy=false,wantR=null,wantT=false,wantX=null,lastSrcMsg=null,thumbT=0;
+function fakeWorker(){const outer={onmessage:null,postMessage(m){setTimeout(()=>inner.onmessage({data:m}),0)},terminate(){}};
+ const inner={onmessage:null,postMessage(m){setTimeout(()=>outer.onmessage&&outer.onmessage({data:m}),0)}};
+ new Function('self',ENG)(inner);return outer}
+function startWorker(){
+ try{wk=new Worker(URL.createObjectURL(new Blob([ENG],{type:'text/javascript'})));wk.onerror=()=>{if(!fallen){fallen=true;try{wk.terminate()}catch(e){}wk=fakeWorker();wk.onmessage=onMsg;busy=false;ready=false;if(lastSrcMsg)wk.postMessage(lastSrcMsg)}}}
+ catch(e){fallen=true;wk=fakeWorker()}
+ wk.onmessage=onMsg}
+function onMsg(e){const m=e.data;
+ if(m.type==='ready'){ready=true;busy=false;wantR=wantR||'full';wantT=true;pump();return}
+ if(m.type==='frame'){busy=false;showFrame(m.img,m.q);if(m.q==='full'){clearTimeout(thumbT);thumbT=setTimeout(()=>{wantT=true;pump()},220)}pump();return}
+ if(m.type==='thumbs'){busy=false;for(const r of m.res){const c=reel.querySelector(`[data-id="${r.id}"] canvas`);c.width=r.img.width;c.height=r.img.height;c.getContext('2d').putImageData(r.img,0,0)}pump();return}
+ if(m.type==='export'){busy=false;const x=wantX;wantX=null;x.done(m.img);pump()}}
+function pump(){if(busy||!ready)return;
+ if(wantX&&!wantX.sent){busy=true;wantX.sent=true;wk.postMessage(wantX.msg,[wantX.msg.img.data.buffer]);return}
+ if(wantX)return;
+ if(wantR){const q=wantR;wantR=null;busy=true;wk.postMessage({type:'render',q,S:{...S}});return}
+ if(wantT){wantT=false;busy=true;wk.postMessage({type:'thumbs',S:{...S},ids:NAMES.map(n=>n[0])})}}
+function request(q){if(!src)return;wantR=q==='full'||wantR==='full'?'full':'low';pump()}
+function showFrame(img,q){
+ if(q==='low'){lc.width=img.width;lc.height=img.height;lctx.putImageData(img,0,0);fctx.imageSmoothingQuality='high';fctx.drawImage(lc,0,0,fc.width,fc.height)}
+ else fctx.putImageData(img,0,0);
+ if(!orig)ctx.drawImage(fc,0,0)}
 
-function buildLUT(sim,s){
- const L=new Float32Array(1024),con=sim.con||0,blk=sim.blk||0,wht=sim.wht||0;
- for(let i=0;i<1024;i++){let y=i/1023;
-  y=y+con*(y*y*(3-2*y)-y);
-  y-=s.sh*.045*(1-y)*(1-y)*y*6.75;
-  y+=s.hl*.045*y*y*(1-y)*6.75;
-  y=blk+y*(1-blk-wht);
-  L[i]=Math.min(1,Math.max(0,y))}
- return L}
+function loadSource(source,w,h){
+ src={source,w,h};
+ const k=Math.min(1,1080/Math.max(w,h)),pw=Math.round(w*k),ph=Math.round(h*k);
+ for(const c of[cv,fc,oc]){c.width=pw;c.height=ph}
+ octx.drawImage(source,0,0,pw,ph);ctx.drawImage(oc,0,0);
+ const prev=octx.getImageData(0,0,pw,ph);
+ const hc=document.createElement('canvas');hc.width=Math.max(1,pw>>1);hc.height=Math.max(1,ph>>1);hc.getContext('2d').drawImage(oc,0,0,hc.width,hc.height);
+ const tk=Math.max(144/w,104/h),tw=Math.round(w*tk),th=Math.round(h*tk),tc=document.createElement('canvas');tc.width=tw;tc.height=th;tc.getContext('2d').drawImage(source,0,0,tw,th);
+ lastSrcMsg={type:'src',prev,half:hc.getContext('2d').getImageData(0,0,hc.width,hc.height),thumb:tc.getContext('2d').getImageData(0,0,tw,th),scale:k,tscale:tk};
+ ready=false;busy=false;wantR='full';wk.postMessage(lastSrcMsg)}
 
-function render(src,W,Hh,gscale,simId){
- const sim=SIMS.find(x=>x.id===(simId||S.sim))||SIMS[3];
- const d=src.data,out=new ImageData(W,Hh),o=out.data;
- const lut=buildLUT(sim,S),ev=Math.pow(2,S.ev);
- const wr=1+S.wr*.012,wb=1+S.wb*.012,wg=1-(S.wr+S.wb)*.003;
- const sat=(sim.sat||1)*(1+S.col*.1);
- const bands=(sim.bands||[]).map(([c,t,f,m])=>({c:H[c],dh:wrapA(H[t]-H[c])*f,m}));
- const cce=[0,.12,.22][S.cce],ccb=[0,.14,.26][S.ccb];
- const sh=sim.sh||[0,0,0],hi=sim.hi||[0,0,0],tint=sim.tint;
- const gAmt=([0,.035,.065][S.grain])+(sim.grain?.012:0),gs=Math.max(1,(S.gsize?2.2:1.1)*gscale);
- const vig=S.vig*.06,BW=.65;
- for(let y=0,p=0;y<Hh;y++){const vy=(y/Hh-.5)*2;
-  for(let x=0;x<W;x++,p+=4){
-   let r=d[p]/255*wr*ev,g=d[p+1]/255*wg*ev,b=d[p+2]/255*wb*ev;
-   let Y=.299*r+.587*g+.114*b,I=.596*r-.274*g-.322*b,Q=.211*r-.523*g+.312*b;
-   if(sim.mono){I=0;Q=0}else{
-    let C=Math.sqrt(I*I+Q*Q);
-    if(C>1e-4){let h=Math.atan2(Q,I),dh=0,m=1,bw=0;
-     for(const k of bands){const w=1-Math.abs(wrapA(h-k.c))/BW;if(w>0){dh+=k.dh*w;m*=1+(k.m-1)*w}}
-     if(ccb){const w=1-Math.abs(wrapA(h-H.b))/BW;if(w>0)bw=w}
-     const cn=Math.min(C/.28,1);
-     Y*=1-cce*cn*cn-ccb*bw*cn;
-     C*=sat*m;h+=dh;I=C*Math.cos(h);Q=C*Math.sin(h)}}
-   Y=lut[Math.max(0,Math.min(1023,(Y*1023)|0))];
-   if(tint){const t=4*Y*(1-Y)+.25;I=tint[0]*t;Q=tint[1]*t}
-   r=Y+.956*I+.621*Q;g=Y-.272*I-.647*Q;b=Y-1.106*I+1.703*Q;
-   const s2=(1-Y)*(1-Y),h2=Y*Y;
-   r+=sh[0]*s2+hi[0]*h2;g+=sh[1]*s2+hi[1]*h2;b+=sh[2]*s2+hi[2]*h2;
-   if(gAmt){const n=tile[(((y/gs)|0)&255)*GT+(((x/gs)|0)&255)]*gAmt*(.35+2.6*Y*(1-Y));r+=n;g+=n;b+=n}
-   if(vig){const vx=(x/W-.5)*2,dd=vx*vx+vy*vy-.35;if(dd>0){const f=1-vig*dd;r*=f;g*=f;b*=f}}
-   o[p]=r*255;o[p+1]=g*255;o[p+2]=b*255;o[p+3]=255}}
- return out}
+// state ↔ UI
+const fmt=(k,v)=>k==='ev'?(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1):k==='vig'?String(v):k==='fsz'?v+'%':(v>0?'+':v<0?'−':'±')+Math.abs(v);
+function track(k){const[,mn,mx]=SL[k],z=Math.min(Math.max((0-mn)/(mx-mn),0),1)*100,v=(S[k]-mn)/(mx-mn)*100,a=Math.min(z,v),b=Math.max(z,v);
+ $(k).style.setProperty('--trk',`linear-gradient(90deg,#333 ${a}%,#f2f2f2 ${a}%,#f2f2f2 ${b}%,#333 ${b}%)`)}
+function sync(){
+ for(const k in SL){$(k).value=S[k];const o=$('o_'+k);o.textContent=fmt(k,S[k]);o.classList.toggle('z',k!=='fsz'&&!S[k]);track(k)}
+ document.querySelectorAll('.pills').forEach(el=>el.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S[el.dataset.k])));
+ reel.querySelectorAll('.fr').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===S.sim));
+ const n=NAMES.find(x=>x[0]===S.sim)||NAMES[3];$('name').firstChild.textContent=n[1];$('simk').textContent=n[2];
+ $('fsz').disabled=!S.ap;
+ try{localStorage.setItem('fsim2',JSON.stringify(S))}catch(e){}}
+
+// history
+const hist=[],fut=[];let last=JSON.stringify(S);
+function commit(){const j=JSON.stringify(S);if(j!==last){hist.push(last);if(hist.length>80)hist.shift();fut.length=0;last=j}hb()}
+function hb(){$('undo').disabled=!hist.length;$('redo').disabled=!fut.length}
+function stepHist(from,to,msg){if(!from.length)return;to.push(last);S=JSON.parse(from.pop());last=JSON.stringify(S);sync();request('full');hb();badge(msg)}
+$('undo').addEventListener('click',()=>stepHist(hist,fut,'이전 단계'));
+$('redo').addEventListener('click',()=>stepHist(fut,hist,'다시 실행'));
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?stepHist(fut,hist,'다시 실행'):stepHist(hist,fut,'이전 단계')}});
+
+// controls
+for(const k in SL){const el=$(k);
+ el.addEventListener('input',()=>{S[k]=+el.value;$('o_'+k).textContent=fmt(k,S[k]);$('o_'+k).classList.toggle('z',k!=='fsz'&&!S[k]);track(k);if(k==='fsz')showAF();request('low')});
+ el.addEventListener('change',()=>{S[k]=+el.value;sync();request('full');commit()})}
+document.querySelectorAll('.sl label').forEach(l=>l.addEventListener('dblclick',()=>{const k=l.dataset.k;S[k]=DEF[k];sync();request('full');commit()}));
+document.querySelectorAll('.pills').forEach(el=>el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=el.dataset.k;S[k]=+b.dataset.v;sync();request('full');commit();if(k==='ap'&&S.ap)showAF()}));
+function pick(id,scroll){S.sim=id;sync();request('full');commit();const b=reel.querySelector(`[data-id="${id}"]`);if(scroll){b.focus();b.scrollIntoView({block:'nearest',inline:'center'})}}
+reel.addEventListener('click',e=>{const b=e.target.closest('.fr');if(b)pick(b.dataset.id)});
+reel.addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;e.preventDefault();const i=NAMES.findIndex(n=>n[0]===S.sim);pick(NAMES[(i+(e.key==='ArrowRight'?1:NAMES.length-1))%NAMES.length][0],true)});
+$('reset').addEventListener('click',()=>{S={...DEF,sim:S.sim};sync();request('full');commit();badge('초기화')});
+$('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;
+ document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));
+ document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.p!==t.dataset.t);$('panel').scrollTop=0;
+ if(t.dataset.t==='film'){const b=reel.querySelector('[aria-pressed=true]');if(b)b.scrollIntoView({block:'nearest',inline:'center'})}});
+
+// photo area: focus tap, compare
+function rect(){const r=cv.getBoundingClientRect(),s=Math.min(r.width/cv.width,r.height/cv.height),w=cv.width*s,h=cv.height*s;return{l:r.left+(r.width-w)/2,t:r.top+(r.height-h)/2,w,h}}
+function showAF(){const v=$('view').getBoundingClientRect(),d=rect(),af=$('af');
+ af.style.left=(d.l-v.left+S.fx*d.w)+'px';af.style.top=(d.t-v.top+S.fy*d.h)+'px';af.classList.add('on');clearTimeout(showAF.t);showAF.t=setTimeout(()=>af.classList.remove('on'),1300)}
+cv.addEventListener('click',e=>{if(orig||!src)return;
+ if(!S.ap){if(!$('tabs').querySelector('[data-t=focus][aria-selected=true]'))return;toast('아웃포커싱을 먼저 켜주세요');return}
+ const d=rect();S.fx=Math.min(1,Math.max(0,(e.clientX-d.l)/d.w));S.fy=Math.min(1,Math.max(0,(e.clientY-d.t)/d.h));sync();request('full');commit();showAF()});
+const hold=$('hold');
+const setOrig=v=>{orig=v;hold.classList.toggle('on',v);ctx.drawImage(v?oc:fc,0,0);badge(v?'원본':'',v)};
+hold.addEventListener('pointerdown',e=>{e.preventDefault();setOrig(true)});
+['pointerup','pointerleave','pointercancel'].forEach(t=>hold.addEventListener(t,()=>orig&&setOrig(false)));
+hold.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!orig){e.preventDefault();setOrig(true)}});
+hold.addEventListener('keyup',()=>orig&&setOrig(false));
+hold.addEventListener('contextmenu',e=>e.preventDefault());
+function badge(t,stay){const b=$('badge');b.textContent=t;b.classList.toggle('on',!!t);clearTimeout(badge.t);if(t&&!stay)badge.t=setTimeout(()=>b.classList.remove('on'),900)}
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2200)}
+
+$('file').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{let bmp;try{bmp=await createImageBitmap(f,{imageOrientation:'from-image'})}catch(_){bmp=await createImageBitmap(f)}
+  exifT=null;try{exifT=EX.read(await f.arrayBuffer())}catch(_){}
+  loadSource(bmp,bmp.width,bmp.height);toast(exifT?'촬영 정보도 함께 저장돼요':'이 사진에는 촬영 정보가 없어요')}
+ catch(err){toast('이 사진은 열 수 없어요')}});
+
+// save
+let dl=null;
+(async()=>{try{if(window.claude&&claude.use)dl=await claude.use('downloads')}catch(e){}})();
+function exportFull(){return new Promise(res=>{
+ const k=Math.min(1,Math.sqrt(16e6/(src.w*src.h))),w=Math.round(src.w*k),h=Math.round(src.h*k);
+ const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(src.source,0,0,w,h);
+ const sk=Math.min(1,1200/Math.max(w,h)),sc=document.createElement('canvas');sc.width=Math.round(w*sk);sc.height=Math.round(h*sk);const sx=sc.getContext('2d');sx.drawImage(src.source,0,0,sc.width,sc.height);
+ wantX={msg:{type:'export',img:x.getImageData(0,0,w,h),small:sx.getImageData(0,0,sc.width,sc.height),S:{...S},k},done(img){x.putImageData(img,0,0);c.toBlob(async b=>res(exifT?new Blob([EX.insert(await b.arrayBuffer(),exifT)],{type:'image/jpeg'}):b),'image/jpeg',.94)}};
+ pump()})}
+$('save').addEventListener('click',async()=>{
+ if(!src||wantX)return;badge('저장 중…',true);
+ try{const blob=await exportFull(),name='film_'+S.sim+'_'+Date.now()+'.jpg';let done=false;badge('');
+  if(dl){try{await dl.save({filename:name,data:blob});toast('저장했어요');done=true}
+   catch(err){const c=err&&err.code;if(c==='declined'){toast('저장을 취소했어요');done=true}else if(c==='rate_limited'){toast('잠시 후 다시 시도해 주세요');done=true}}}
+  if(!done&&!dl){const file=new File([blob],name,{type:'image/jpeg'});
+   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});done=true}}catch(err){if(err&&err.name==='AbortError')done=true}
+   if(!done&&!window.claude){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('저장했어요');done=true}}
+  if(!done){$('outimg').src=URL.createObjectURL(blob);$('sheet').classList.add('on')}}
+ catch(e){badge('');toast('저장 중 문제가 생겼어요')}});
+$('close').addEventListener('click',()=>{$('sheet').classList.remove('on');URL.revokeObjectURL($('outimg').src)});
 
 function sample(){
  const c=document.createElement('canvas');c.width=1200;c.height=900;const x=c.getContext('2d');
@@ -327,144 +509,9 @@ function sample(){
  gr=x.createLinearGradient(0,520,0,900);gr.addColorStop(0,'#7fbf3a');gr.addColorStop(1,'#3d7a1e');x.fillStyle=gr;x.fillRect(0,520,1200,380);
  for(const[cx,col]of[[180,'#e0322b'],[330,'#f2b21b'],[480,'#d8572a']]){x.fillStyle='#4a3326';x.fillRect(cx-8,640,16,120);x.fillStyle=col;x.beginPath();x.arc(cx,620,80,0,7);x.fill()}
  x.fillStyle='#e8c9a8';x.beginPath();x.arc(880,620,46,0,7);x.fill();x.fillStyle='#2b3f63';x.fillRect(830,666,100,160);x.fillStyle='#1a1a1a';x.fillRect(850,826,24,60);x.fillRect(886,826,24,60);
- loadCanvas(c,1200,900)}
+ loadSource(c,1200,900)}
 
-
-let exifT=null;
-Object.assign(DEF,{ap:0,fsz:30,fx:.5,fy:.5});for(const k of['ap','fsz','fx','fy'])if(S[k]==null)S[k]=DEF[k];
-
-const APK=[0,.005,.009,.015];
-function box(a,t,w,h,r){const iv=1/(2*r+1);
- for(let y=0;y<h;y++){const o=y*w;let s=0;for(let k=-r;k<=r;k++)s+=a[o+(k<0?0:k>w-1?w-1:k)];
-  for(let x=0;x<w;x++){t[x]=s;const xa=x+r+1,xb=x-r;s+=a[o+(xa>w-1?w-1:xa)]-a[o+(xb<0?0:xb)]}
-  for(let x=0;x<w;x++)a[o+x]=t[x]*iv}
- for(let x=0;x<w;x++){let s=0;for(let k=-r;k<=r;k++)s+=a[(k<0?0:k>h-1?h-1:k)*w+x];
-  for(let y=0;y<h;y++){t[y]=s;const ya=y+r+1,yb=y-r;s+=a[(ya>h-1?h-1:ya)*w+x]-a[(yb<0?0:yb)*w+x]}
-  for(let y=0;y<h;y++)a[y*w+x]=t[y]*iv}}
-function blurID(id,w,h,r){
- const n=w*h,d=id.data,P=[new Float32Array(n),new Float32Array(n),new Float32Array(n)],t=new Float32Array(Math.max(w,h));
- for(let i=0,p=0;i<n;i++,p+=4){const a=d[p]/255,b=d[p+1]/255,c=d[p+2]/255,q=Math.max(0,(.299*a+.587*b+.114*c-.7)/.3),k=1+2.5*q*q;P[0][i]=a*a*k;P[1][i]=b*b*k;P[2][i]=c*c*k}
- const rb=Math.max(1,Math.round(r/1.6));
- for(const a of P)for(let i=0;i<3;i++)box(a,t,w,h,rb);
- const out=new ImageData(w,h),o=out.data;
- for(let i=0,p=0;i<n;i++,p+=4){o[p]=Math.sqrt(P[0][i])*255;o[p+1]=Math.sqrt(P[1][i])*255;o[p+2]=Math.sqrt(P[2][i])*255;o[p+3]=255}
- return out}
-function fmask(xn,yn,W,H){const L=Math.max(W,H),dx=(xn-S.fx)*W/L,dy=(yn-S.fy)*H/L,d=Math.sqrt(dx*dx+dy*dy),r0=S.fsz/100*.5,b=.1+r0*.8;let t=(d-r0)/b;t=t<0?0:t>1?1:t;return t*t*(3-2*t)}
-function makeBlurs(id,w,h){const R=Math.max(w,h)*APK[S.ap];return[blurID(id,w,h,R*.4),blurID(id,w,h,R)]}
-function blurMix(b1,b2,w,h){const out=new ImageData(w,h),o=out.data,p1=b1.data,p2=b2.data;
- for(let y=0,p=0;y<h;y++)for(let x=0;x<w;x++,p+=4){let a=(fmask((x+.5)/w,(y+.5)/h,w,h)-.5)*2;a=a<0?0:a;
-  o[p]=p1[p]+(p2[p]-p1[p])*a;o[p+1]=p1[p+1]+(p2[p+1]-p1[p+1])*a;o[p+2]=p1[p+2]+(p2[p+2]-p1[p+2])*a;o[p+3]=255}
- return out}
-function mixFocus(src,w,h,bm){const out=new ImageData(w,h),o=out.data,s=src.data,b=bm.data;
- for(let y=0,p=0;y<h;y++)for(let x=0;x<w;x++,p+=4){let a=fmask((x+.5)/w,(y+.5)/h,w,h)*2;a=a>1?1:a;
-  o[p]=s[p]+(b[p]-s[p])*a;o[p+1]=s[p+1]+(b[p+1]-s[p+1])*a;o[p+2]=s[p+2]+(b[p+2]-s[p+2])*a;o[p+3]=255}
- return out}
-let bcache=null;
-function focusSrc(){
- if(!S.ap)return srcPrev.img;const w=cv.width,h=cv.height;
- if(!bcache||bcache.k!==S.ap||bcache.src!==srcPrev)bcache={k:S.ap,src:srcPrev,b:makeBlurs(srcPrev.img,w,h)};
- return mixFocus(srcPrev.img,w,h,blurMix(bcache.b[0],bcache.b[1],w,h))}
-
-let thumbSrc=null,thumbT=0;
-function draw(){
- if(!srcPrev)return;
- if(orig){ctx.putImageData(srcPrev.img,0,0);return}
- if(pending)return;pending=true;$('dev').classList.add('on');
- requestAnimationFrame(()=>{setTimeout(()=>{
-  ctx.putImageData(render(focusSrc(),cv.width,cv.height,srcPrev.scale),0,0);
-  pending=false;$('dev').classList.remove('on');queueThumbs()},0)})}
-function queueThumbs(){clearTimeout(thumbT);thumbT=setTimeout(drawThumbs,160)}
-function drawThumbs(){
- if(!thumbSrc)return;const{img,w,h,k}=thumbSrc;
- reel.querySelectorAll('.fr').forEach(b=>{const c=b.querySelector('canvas');c.width=w;c.height=h;
-  c.getContext('2d').putImageData(render(img,w,h,k,b.dataset.id),0,0)})}
-function loadCanvas(source,w,h){
- srcFull={source,w,h};
- const k=Math.min(1,1080/Math.max(w,h)),pw=Math.round(w*k),ph=Math.round(h*k);
- cv.width=pw;cv.height=ph;ctx.drawImage(source,0,0,pw,ph);
- srcPrev={img:ctx.getImageData(0,0,pw,ph),scale:k};
- const tk=Math.max(176/w,120/h),tw=Math.round(w*tk),th=Math.round(h*tk),tc=document.createElement('canvas');
- tc.width=tw;tc.height=th;const tx=tc.getContext('2d');tx.drawImage(source,0,0,tw,th);
- thumbSrc={img:tx.getImageData(0,0,tw,th),w:tw,h:th,k:tk};
- draw()}
-
-const reel=$('reel');
-reel.innerHTML=SIMS.map((s,i)=>`<button class="fr" type="button" data-id="${s.id}" data-i="${i}"><canvas width="176" height="120"></canvas><b>${s.n}</b><span>${s.k}</span></button>`).join('');
-const SEG={ap:['끔','F4','F2.8','F2'],grain:['끔','약하게','강하게'],gsize:['입자 작게','입자 크게'],cce:['끔','약하게','강하게'],ccb:['끔','약하게','강하게']};
-document.querySelectorAll('.seg').forEach(el=>{const k=el.dataset.k;el.innerHTML=SEG[k].map((t,i)=>`<button type="button" data-v="${i}">${t}</button>`).join('');
- el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S[k]=+b.dataset.v;sync();draw()})});
-const RNG=['hl','sh','col','wr','wb','ev','vig','fsz'];
-const fmt=(k,v)=>k==='ev'?(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1):k==='vig'?String(v):k==='fsz'?v+'%':(v>0?'+':v<0?'−':'±')+Math.abs(v);
-RNG.forEach(k=>$(k).addEventListener('input',e=>{S[k]=+e.target.value;sync();draw()}));
-function sync(){
- RNG.forEach(k=>{$(k).value=S[k];const o=$('o_'+k);o.textContent=fmt(k,S[k]);o.classList.toggle('z',!S[k])});
- document.querySelectorAll('.seg').forEach(el=>el.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===S[el.dataset.k])));
- let idx=0;reel.querySelectorAll('.fr').forEach((b,i)=>{const on=b.dataset.id===S.sim;b.setAttribute('aria-pressed',on);if(on)idx=i});
- $('epName').textContent=SIMS[idx].n;$('epNo').textContent='▸ '+String(idx+1).padStart(2,'0');
- $('chip').classList.toggle('on',orig);$('stage').classList.toggle('focus',!!S.ap);$('fsz').disabled=!S.ap;
- try{localStorage.setItem('fsim',JSON.stringify(S))}catch(e){}}
-function pick(id,scroll){S.sim=id;sync();draw();if(scroll){const b=reel.querySelector(`[data-id="${id}"]`);b.focus();b.scrollIntoView({block:'nearest',inline:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}}
-reel.addEventListener('click',e=>{const b=e.target.closest('.fr');if(b)pick(b.dataset.id)});
-reel.addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;e.preventDefault();const i=SIMS.findIndex(x=>x.id===S.sim);pick(SIMS[(i+(e.key==='ArrowRight'?1:SIMS.length-1))%SIMS.length].id,true)});
-function showAF(){const st=$('stage').getBoundingClientRect(),c=cv.getBoundingClientRect(),af=$('af');
- af.style.left=(c.left-st.left+S.fx*c.width)+'px';af.style.top=(c.top-st.top+S.fy*c.height)+'px';
- af.classList.add('on');clearTimeout(showAF.t);showAF.t=setTimeout(()=>af.classList.remove('on'),1400)}
-cv.addEventListener('click',e=>{if(!S.ap||orig)return;const c=cv.getBoundingClientRect();
- S.fx=Math.min(1,Math.max(0,(e.clientX-c.left)/c.width));S.fy=Math.min(1,Math.max(0,(e.clientY-c.top)/c.height));sync();draw();showAF()});
-document.querySelector('.seg[data-k=ap]').addEventListener('click',()=>{if(S.ap)setTimeout(showAF,50)});
-$('fsz').addEventListener('input',()=>showAF());
-const hist=[];let last=JSON.stringify(S);
-function commit(){const j=JSON.stringify(S);if(j!==last){hist.push(last);if(hist.length>60)hist.shift();last=j}uiUndo()}
-function uiUndo(){$('undo').disabled=$('undo2').disabled=!hist.length}
-function undo(){if(!hist.length)return;S=JSON.parse(hist.pop());last=JSON.stringify(S);sync();draw();uiUndo();toast('이전 단계로 돌아갔어요')}
-$('undo').addEventListener('click',undo);$('undo2').addEventListener('click',undo);
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){e.preventDefault();undo()}});
-RNG.forEach(k=>$(k).addEventListener('change',commit));
-document.querySelectorAll('.seg').forEach(el=>el.addEventListener('click',commit));
-reel.addEventListener('click',commit);reel.addEventListener('keyup',commit);
-cv.addEventListener('click',commit);
-$('reset').addEventListener('click',()=>{S={...DEF,sim:S.sim};sync();draw();commit()});
-const setOrig=v=>{orig=v;sync();draw()};
-const hold=$('hold');
-hold.addEventListener('pointerdown',e=>{e.preventDefault();setOrig(true)});
-['pointerup','pointerleave','pointercancel'].forEach(t=>hold.addEventListener(t,()=>orig&&setOrig(false)));
-hold.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!orig)setOrig(true)}});
-hold.addEventListener('keyup',()=>orig&&setOrig(false));
-hold.addEventListener('contextmenu',e=>e.preventDefault());
-
-$('file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
- try{let bmp;try{bmp=await createImageBitmap(f,{imageOrientation:'from-image'})}catch(_){bmp=await createImageBitmap(f)}
-  exifT=null;try{exifT=EX.read(await f.arrayBuffer())}catch(_){}
-  loadCanvas(bmp,bmp.width,bmp.height);$('hint').textContent=exifT?'촬영 정보(날짜·위치·기기)도 함께 저장돼요. 원본 버튼을 누르고 있으면 원본이 보여요.':'이 사진에는 촬영 정보가 없어요. 원본 버튼을 누르고 있으면 원본이 보여요.'}
- catch(err){toast('이 사진은 열 수 없어요')}});
-function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2400)}
-
-let dl=null;
-(async()=>{try{if(window.claude&&claude.use)dl=await claude.use('downloads')}catch(e){}})();
-function fullBlob(){
- const{source}=srcFull,k=Math.min(1,Math.sqrt(16e6/(srcFull.w*srcFull.h))),w=Math.round(srcFull.w*k),h=Math.round(srcFull.h*k);
- const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
- x.drawImage(source,0,0,w,h);let id=x.getImageData(0,0,w,h);
- if(S.ap){const sk=Math.min(1,1200/Math.max(w,h)),sw=Math.round(w*sk),sh=Math.round(h*sk),sc=document.createElement('canvas');sc.width=sw;sc.height=sh;const sx=sc.getContext('2d');
-  sx.drawImage(source,0,0,sw,sh);const[b1,b2]=makeBlurs(sx.getImageData(0,0,sw,sh),sw,sh);sx.putImageData(blurMix(b1,b2,sw,sh),0,0);
-  x.imageSmoothingQuality='high';x.drawImage(sc,0,0,w,h);id=mixFocus(id,w,h,x.getImageData(0,0,w,h))}
- x.putImageData(render(id,w,h,k),0,0);
- return new Promise(r=>c.toBlob(r,'image/jpeg',.94)).then(async b=>exifT?new Blob([EX.insert(await b.arrayBuffer(),exifT)],{type:'image/jpeg'}):b)}
-$('save').addEventListener('click',async()=>{
- if(!srcFull)return;const btn=$('save');btn.disabled=true;$('dev').classList.add('on');
- await new Promise(r=>setTimeout(r,30));
- try{const blob=await fullBlob();const name='film_'+S.sim+'_'+Date.now()+'.jpg';let done=false;
-  if(dl){try{await dl.save({filename:name,data:blob});toast('저장했어요');done=true}
-   catch(err){const c=err&&err.code;if(c==='declined'){toast('저장을 취소했어요');done=true}else if(c==='rate_limited'){toast('잠시 후 다시 시도해 주세요');done=true}}}
-  if(!done&&!dl){const file=new File([blob],name,{type:'image/jpeg'});
-   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});done=true}}catch(err){if(err&&err.name==='AbortError')done=true}
-   if(!done&&!window.claude){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('저장했어요');done=true}}
-  if(!done){$('outimg').src=URL.createObjectURL(blob);$('sheet').classList.add('on')}}
- catch(e){toast('저장 중 문제가 생겼어요')}
- btn.disabled=false;$('dev').classList.remove('on')});
-$('close').addEventListener('click',()=>{$('sheet').classList.remove('on');URL.revokeObjectURL($('outimg').src)});
-
-sync();uiUndo();sample();
+startWorker();sync();hb();sample();toast('열기로 내 사진을 불러오세요');
 requestAnimationFrame(()=>{const b=reel.querySelector('[aria-pressed=true]');if(b)b.scrollIntoView({block:'nearest',inline:'center'})});
 }
 </script>
